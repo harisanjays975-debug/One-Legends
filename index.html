@@ -6,108 +6,159 @@
 <title>ONE Legends</title>
 <link id="favicon" rel="icon" href="logo.png">
 <style>
-html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:Arial,sans-serif;user-select:none;-webkit-user-select:none;touch-action:none;overscroll-behavior:none}
-#c{position:fixed;inset:0;display:block;cursor:crosshair;width:100%;height:100%;touch-action:none}
-.panel,#admin{touch-action:pan-y}
+html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:Arial,sans-serif;user-select:none;-webkit-user-select:none;touch-action:none;overscroll-behavior:none;-webkit-tap-highlight-color:transparent}
+#c{position:fixed;inset:0;display:block;width:100%;height:100%;cursor:crosshair;touch-action:none}
+.hide{display:none!important}
 
-#login{position:fixed;inset:0;z-index:10;color:#fff;background:radial-gradient(circle at 50% 30%,#1d4d7a,#061a2e 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:20px;box-sizing:border-box}
+/* ---------- Login ---------- */
+#login{position:fixed;inset:0;z-index:20;color:#fff;background:radial-gradient(circle at 50% 30%,#1d4d7a,#061a2e 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:20px;box-sizing:border-box}
 #login h1{font-size:52px;margin:0;text-shadow:0 4px 20px #000;letter-spacing:2px;text-align:center}
 #login input{padding:11px;font-size:16px;border-radius:8px;border:none;width:260px;max-width:80vw;text-align:center}
-button{padding:11px 28px;font-size:16px;border:none;border-radius:8px;cursor:pointer;font-weight:bold;background:linear-gradient(#ffc04d,#f5a623);box-shadow:0 4px 14px rgba(245,166,35,.5)}
+#logo{width:min(300px,70vw);height:auto;aspect-ratio:1/1;object-fit:cover;border-radius:50%;box-shadow:0 0 30px rgba(0,200,255,.7)}
 #loginErr{color:#ff8a8a;min-height:18px;margin:0;font-size:14px;text-align:center}
 .hint{font-size:12px;opacity:.6;margin:0;text-align:center}
-#logo{width:min(300px,70vw);height:auto;aspect-ratio:1/1;object-fit:cover;border-radius:50%;margin:0;box-shadow:0 0 30px rgba(0,200,255,.7)}
 
-/* ---------- Panels (shop + quest) ---------- */
-.panel{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(780px,94vw);max-height:86vh;display:none;flex-direction:column;background:linear-gradient(180deg,#14284a,#0a1830);color:#f3ead2;border-radius:16px;border:1px solid #d9a441;box-shadow:0 24px 60px rgba(0,0,0,.6);overflow:hidden;z-index:5;font-family:Arial,sans-serif;max-height:86dvh}
+button{font-family:Arial,sans-serif;padding:11px 28px;font-size:16px;border:none;border-radius:8px;cursor:pointer;font-weight:bold;background:linear-gradient(#ffc04d,#f5a623);box-shadow:0 4px 14px rgba(245,166,35,.5);color:#1d1408}
+button:disabled{background:rgba(255,255,255,.08)!important;color:#7f90a6!important;box-shadow:none;cursor:not-allowed}
+
+/* ---------- UI visibility ---------- */
+.ui{position:fixed;z-index:6}
+body:not(.in) .ui{display:none!important}
+body:not(.touch) .touchOnly{display:none!important}
+
+/* ---------- Left column: player box + menu ---------- */
+#leftCol{left:10px;top:10px;width:232px;display:flex;flex-direction:column;gap:6px}
+#pbox{background:rgba(8,14,28,.8);border:1px solid rgba(217,164,65,.5);border-radius:12px;color:#fff;overflow:hidden}
+#pHead{display:flex;align-items:center;gap:8px;padding:9px 10px}
+#pName{flex:1;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#pLv{color:#ffd34d;font-weight:bold;font-size:13px}
+#pTog{width:28px;height:28px;padding:0;border-radius:50%;font-size:18px;line-height:1;background:rgba(255,255,255,.15);color:#fff;box-shadow:none}
+#pBody{padding:0 10px 10px}
+.bar{height:12px;border-radius:6px;background:#2b2b2b;overflow:hidden;margin-bottom:5px}
+.bar.th{height:7px}
+.bar i{display:block;height:100%;width:100%;transition:width .15s}
+.inf{font-size:12px;line-height:1.6;color:#e8eef7;display:grid;gap:1px}
+#pbox.closed #pBody{display:none}
+
+#menuTog{padding:10px;font-size:14px;border-radius:10px;background:rgba(8,14,28,.85);color:#ffd166;border:1px solid rgba(217,164,65,.6);box-shadow:none}
+#menuGrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:rgba(8,14,28,.9);border:1px solid rgba(217,164,65,.5);border-radius:12px;padding:8px}
+#menuGrid button{padding:10px 6px;font-size:13px;border-radius:9px;background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.15);box-shadow:none}
+#menuGrid button:hover{background:rgba(255,255,255,.18)}
+#menuGrid button.on{background:linear-gradient(#5be38a,#2ecc71);color:#06220f;border-color:#5be38a}
+#menuGrid button.admin-only{display:none}
+body.admin #menuGrid button.admin-only{display:block}
+
+/* ---------- Chat (bottom-left) ---------- */
+#chatBox{left:10px;bottom:10px;width:300px;display:flex;flex-direction:column;gap:6px}
+#chatTog{padding:10px;font-size:14px;border-radius:10px;background:rgba(8,14,28,.85);color:#fff;border:1px solid rgba(255,255,255,.2);box-shadow:none;align-self:flex-start;min-width:120px}
+#chatPanel{background:rgba(8,14,28,.9);border:1px solid rgba(217,164,65,.5);border-radius:12px;padding:8px;display:flex;flex-direction:column;gap:6px}
+#chatLog{color:#fff;font-size:13px;max-height:180px;min-height:40px;overflow:auto;display:flex;flex-direction:column;gap:3px;-webkit-overflow-scrolling:touch}
+#chatIn{width:100%;box-sizing:border-box;padding:9px;border-radius:8px;border:none;font-size:16px}
+
+/* ---------- Quest-tracker PvP chip (top-right) ---------- */
+#pvpChip{right:10px;top:78px;padding:8px 14px;font-size:13px;border-radius:10px;border:1px solid;box-shadow:none;background:rgba(8,14,28,.85)}
+#pvpChip.off{color:#9fb4cc;border-color:rgba(159,180,204,.4)}
+#pvpChip.on{color:#ff8a8a;border-color:#ff5a5a;background:rgba(60,8,12,.85)}
+
+/* ---------- Touch abilities (bottom-right) ---------- */
+#skills{right:10px;bottom:10px;display:grid;grid-template-columns:repeat(3,70px);gap:8px}
+.tb{position:relative;width:70px;height:70px;border-radius:50%;padding:0;color:#1d1408;background:linear-gradient(#ffd166,#e0a030);box-shadow:0 3px 10px rgba(0,0,0,.5);display:flex;flex-direction:column;align-items:center;justify-content:center;touch-action:none;font-size:18px}
+.tb small{font-size:9px;font-weight:normal;max-width:64px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;line-height:1.1}
+.tb .cd{position:absolute;inset:0;border-radius:50%;background:rgba(0,0,0,.62);display:flex;align-items:center;justify-content:center;font-size:15px;color:#ffe066;visibility:hidden}
+.tb.dis{opacity:.45}
+
+/* ---------- Panels ---------- */
+.panel{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(780px,94vw);max-height:86vh;max-height:86dvh;display:none;flex-direction:column;background:linear-gradient(180deg,#14284a,#0a1830);color:#f3ead2;border-radius:16px;border:1px solid #d9a441;box-shadow:0 24px 60px rgba(0,0,0,.6);overflow:hidden;z-index:9;font-family:Arial,sans-serif}
 #quest.panel{width:min(440px,92vw)}
-.sh-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 20px;background:linear-gradient(100deg,#7a2418,#b8731c 60%,#d9a441);border-bottom:1px solid #d9a441}
-.sh-head h3{margin:0;font-family:Georgia,'Times New Roman',serif;font-size:22px;color:#fff6dc;letter-spacing:.5px;text-shadow:0 2px 8px rgba(0,0,0,.4)}
+#pvp.panel{width:min(460px,94vw)}
+.sh-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 18px;background:linear-gradient(100deg,#7a2418,#b8731c 60%,#d9a441);border-bottom:1px solid #d9a441}
+.sh-head h3{margin:0;font-family:Georgia,'Times New Roman',serif;font-size:21px;color:#fff6dc}
 .sh-head p{margin:4px 0 0;font-size:13px;color:#ffe9b8}
 .sh-x{background:rgba(0,0,0,.25);color:#fff;box-shadow:none;width:34px;height:34px;padding:0;font-size:22px;line-height:1;border-radius:50%;flex-shrink:0}
-.sh-tabs{display:flex;gap:8px;padding:14px 20px 0}
+.sh-tabs{display:flex;gap:8px;padding:14px 18px 0}
 .sh-tab{flex:1;background:rgba(255,255,255,.06);color:#bcd0e6;border:1px solid rgba(255,255,255,.12);box-shadow:none;padding:10px;font-size:14px;border-radius:10px}
 .sh-tab.on{background:linear-gradient(#ffd166,#e0a030);color:#1d1408;border-color:#ffd166;font-weight:bold}
-.sh-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;padding:16px 20px;overflow:auto;-webkit-overflow-scrolling:touch}
+.sh-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;padding:16px 18px;overflow:auto;-webkit-overflow-scrolling:touch}
 .sh-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
 .sh-band{height:56px}
 .sh-body{padding:12px 14px;flex:1}
 .sh-body h4{margin:0 0 6px;font-size:15px;color:#fff6dc}
-.sh-body small{display:block;font-size:12px;color:#9fb4cc;line-height:1.6}
+.sh-body small{display:block;font-size:12px;color:#9fb4cc;line-height:1.6;white-space:pre-line}
 .sh-body small b{color:#ffd166}
 .sh-stat{font-size:12px;color:#ffd166;margin-top:8px}
 .sh-btn{margin:0 14px 14px;padding:9px;font-size:13px;box-shadow:none;border-radius:9px;background:linear-gradient(#ffd166,#e0a030);color:#1d1408}
 .sh-btn.on{background:linear-gradient(#5be38a,#2ecc71);color:#06220f}
-.sh-btn:disabled{background:rgba(255,255,255,.08);color:#7f90a6;cursor:not-allowed}
-.sh-foot{margin:0;padding:10px 20px 14px;font-size:12px;color:#7f97b3;text-align:center;border-top:1px solid rgba(255,255,255,.08)}
+.sh-foot{margin:0;padding:10px 18px 14px;font-size:12px;color:#7f97b3;text-align:center;border-top:1px solid rgba(255,255,255,.08)}
+.panel > .sh-grid,.panel > .q-body,.panel > .fr-list,.panel > .pv-list{flex:1 1 auto;min-height:0;overflow:auto}
 .q-body{padding:20px}
 .q-card h4{margin:6px 0;font-family:Georgia,serif;font-size:21px;color:#fff6dc}
 .q-card p{margin:6px 0;font-size:14px;line-height:1.5;color:#d8e3f0}
-.q-step{font-size:12px !important;color:#9fb4cc !important}
-.q-rw{color:#ffd166 !important}
+.q-step{font-size:12px!important;color:#9fb4cc!important}
+.q-rw{color:#ffd166!important}
 .q-bar{height:10px;border-radius:6px;background:rgba(255,255,255,.1);overflow:hidden;margin-top:12px}
 .q-bar div{height:100%;background:linear-gradient(90deg,#f5a623,#ffd166)}
 .q-card .sh-btn{width:100%;margin:16px 0 0;padding:12px;font-size:15px}
-
-/* ---------- Admin ---------- */
-#admin{position:fixed;right:16px;top:16px;width:270px;z-index:8;display:none;background:rgba(15,20,35,.95);color:#fff;padding:14px;border-radius:12px;border:1px solid #f5a623;font-size:13px;max-height:90vh;overflow:auto;-webkit-overflow-scrolling:touch}
-#admin h3{margin:0 0 8px;color:#ffc04d}
-#admin label{display:block;margin-top:8px;opacity:.8}
-#admin input,#admin select{width:100%;box-sizing:border-box;padding:7px;border-radius:6px;border:none;margin-top:4px;font-size:16px}
-#admin .row{display:flex;gap:6px;margin-top:6px}
-#admin .row input,#admin .row select{flex:1;margin:0}
-#admin button{padding:7px 10px;font-size:13px;box-shadow:none}
-#adMsg{min-height:18px;color:#9be7a0;margin:8px 0 0;font-size:12px}
-#chatBox{position:fixed;left:10px;bottom:10px;width:340px;z-index:6;font-size:13px;font-family:Arial,sans-serif}
-#chatLog{background:rgba(8,14,28,.6);color:#fff;border-radius:10px;padding:8px 10px;min-height:20px;max-height:200px;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;gap:3px;pointer-events:none}
-#chatIn{display:none;width:100%;box-sizing:border-box;padding:8px;border-radius:8px;border:none;margin-top:6px;font-size:16px}
-.rar{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:bold;color:#111;margin:0 0 4px;text-transform:capitalize}
-.list{max-height:140px;overflow:auto;margin-top:4px;font-size:12px}
-.listrow{display:flex;gap:4px;align-items:center;margin:4px 0;padding:4px;background:rgba(255,255,255,.05);border-radius:6px}
-.listrow span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.listrow button{padding:3px 6px;font-size:11px;box-shadow:none}
-.fr-band{height:96px;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle,#1d3a63,#0a1830)}
-.sh-card small{white-space:pre-line}
-.panel > .sh-grid, .panel > .q-body{flex:1 1 auto;min-height:0;overflow:auto}
-.panel > .fr-list{flex:1 1 auto;min-height:0;overflow:auto}
-.fr-list{display:flex;flex-direction:column;gap:10px;padding:14px 20px;overflow:auto;-webkit-overflow-scrolling:touch}
+.fr-list{display:flex;flex-direction:column;gap:10px;padding:14px 18px;overflow:auto;-webkit-overflow-scrolling:touch}
 .fr-row{flex:0 0 auto;display:flex;align-items:center;gap:12px;padding:10px 12px;min-height:76px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:pointer}
-.fr-row:hover{background:rgba(255,255,255,.14)}
 .fr-row .fr-info{flex:1;min-width:0}
 .fr-row h4{margin:0 0 3px;font-size:15px;color:#fff6dc}
 .fr-row small{display:block;font-size:12px;color:#9fb4cc;white-space:pre-line}
 .fr-row .sh-btn{margin:0;flex:0 0 auto;padding:8px 12px}
-#fruitBtn{position:fixed;left:10px;top:200px;z-index:6;padding:12px 16px;font-size:14px;border-radius:10px}
+.fr-band{height:96px;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle,#1d3a63,#0a1830)}
+.rar{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:bold;color:#111;margin:0 0 4px;text-transform:capitalize}
 
-/* ---------- Touch UI ---------- */
-#touchUI{position:fixed;inset:0;z-index:4;pointer-events:none;display:none;touch-action:none}
-body.touch #touchUI{display:block}
-.joy{position:absolute;bottom:max(18px,env(safe-area-inset-bottom));width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.35);pointer-events:auto;touch-action:none}
-#joyL{left:max(18px,env(safe-area-inset-left))}
-#joyR{right:max(18px,env(safe-area-inset-right))}
-.knob{position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;background:rgba(255,220,120,.6);border:2px solid #fff3c8}
+/* PvP panel */
+.pv-status{padding:16px 18px 6px;text-align:center}
+.pv-big{width:100%;padding:14px;font-size:16px;border-radius:12px;box-shadow:none}
+.pv-big.on{background:linear-gradient(#ff7a7a,#c62828);color:#fff}
+.pv-big.off{background:linear-gradient(#5be38a,#2ecc71);color:#06220f}
+.pv-rules{font-size:12px;color:#9fb4cc;line-height:1.6;margin:10px 0 0}
+.pv-list{display:flex;flex-direction:column;gap:8px;padding:10px 18px 16px;overflow:auto;-webkit-overflow-scrolling:touch}
+.pv-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px}
+.pv-row .nm{flex:1;min-width:0;color:#fff6dc;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pv-row .nm small{display:block;color:#9fb4cc;font-size:12px}
+.pv-tag{font-size:11px;padding:3px 8px;border-radius:99px;font-weight:bold}
+.pv-tag.on{background:#ff5a5a;color:#fff}
+.pv-tag.off{background:rgba(255,255,255,.12);color:#9fb4cc}
+.pv-row .sh-btn{margin:0;padding:8px 12px;font-size:12px}
 
-/* Skill grid: 3 columns x 2 rows, right of the right joystick */
-#skills{position:absolute;right:165px;bottom:max(18px,env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(3,64px);gap:10px;pointer-events:auto}
-.tb{position:relative;width:64px;height:64px;border-radius:50%;padding:0;font-size:18px;font-weight:bold;color:#1d1408;background:linear-gradient(#ffd166,#e0a030);box-shadow:0 3px 10px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;touch-action:none}
-.tb .cd{position:absolute;inset:0;border-radius:50%;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;font-size:14px;color:#ffe066;visibility:hidden}
+/* Duel popup */
+#duelBox{position:fixed;top:40%;left:50%;transform:translate(-50%,-50%);z-index:21;display:none;background:linear-gradient(180deg,#2a1420,#14101e);color:#fff;padding:20px 24px;border-radius:14px;border:1px solid #ff5a5a;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.6);width:min(320px,88vw);box-sizing:border-box}
+#duelBox p{margin:0 0 14px;font-size:15px;line-height:1.5}
+#duelBox button{padding:10px 18px}
 
-/* Menu: top-left, under the player box, away from the joystick */
-#menuT{position:absolute;top:180px;left:10px;width:260px;display:flex;flex-wrap:wrap;gap:6px;pointer-events:auto}
-.mb{padding:6px 10px;font-size:12px;font-weight:normal;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(8,14,28,.75);color:#fff;box-shadow:none}
-
-#rot{display:none;position:fixed;top:0;left:0;right:0;z-index:9;background:rgba(0,0,0,.75);color:#ffe066;text-align:center;padding:8px;font-size:13px;pointer-events:none}
-@media (orientation:portrait) and (pointer:coarse){#rot{display:block}}
-body.touch #fruitBtn{display:none}
-
-/* Chat: top-right, under the quest tracker */
-body.touch #chatBox{top:80px;bottom:auto;left:auto;right:10px;width:min(260px,40vw)}
-body.touch #chatLog{max-height:90px}
+/* ---------- Admin ---------- */
+#admin{position:fixed;right:16px;top:120px;width:270px;z-index:8;display:none;background:rgba(15,20,35,.96);color:#fff;padding:14px;border-radius:12px;border:1px solid #f5a623;font-size:13px;max-height:80vh;overflow:auto;-webkit-overflow-scrolling:touch;box-sizing:border-box}
+#admin h3{margin:0 0 8px;color:#ffc04d}
+#admin label{display:block;margin-top:8px;opacity:.8}
+#admin input,#admin select{width:100%;box-sizing:border-box;padding:7px;border-radius:6px;border:none;margin-top:4px;font-size:16px}
+#admin .row{display:flex;gap:6px;margin-top:6px}
+#admin .row input,#admin .row select{flex:1;margin:0;min-width:0}
+#admin button{padding:7px 10px;font-size:13px;box-shadow:none}
+#adMsg{min-height:18px;color:#9be7a0;margin:8px 0 0;font-size:12px}
+.list{max-height:140px;overflow:auto;margin-top:4px;font-size:12px}
+.listrow{display:flex;gap:4px;align-items:center;margin:4px 0;padding:4px;background:rgba(255,255,255,.05);border-radius:6px}
+.listrow span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.listrow button{padding:3px 6px;font-size:11px;box-shadow:none}
 @media (max-width:820px){#admin{left:50%;right:auto;top:50%;transform:translate(-50%,-50%);width:min(320px,92vw);max-height:80vh}}
+
+/* ---------- Mobile tweaks ---------- */
+body.touch #leftCol{width:200px}
+body.touch #pbox{font-size:12px}
+body.touch #menuGrid button{padding:12px 6px;font-size:13px}
+body.touch #chatBox{width:250px}
+body.touch #chatLog{max-height:110px}
+body.touch #pvpChip{top:70px}
+body.touch .tb{width:66px;height:66px}
+body.touch #skills{grid-template-columns:repeat(3,66px)}
+
+#rot{display:none;position:fixed;top:0;left:0;right:0;z-index:19;background:rgba(0,0,0,.75);color:#ffe066;text-align:center;padding:8px;font-size:13px;pointer-events:none}
+@media (orientation:portrait) and (pointer:coarse){#rot{display:block}}
 </style>
 </head>
 <body>
 
+<!-- LOGIN -->
 <div id="login">
   <img id="logo" src="logo.png" alt="ONE Legends">
   <h1>ONE Legends</h1>
@@ -118,23 +169,77 @@ body.touch #chatLog{max-height:90px}
   <p class="hint">New username and passkey = new account</p>
 </div>
 
+<!-- LEFT COLUMN: player box + menu -->
+<div id="leftCol" class="ui">
+  <div id="pbox">
+    <div id="pHead">
+      <b id="pName"></b><span id="pLv"></span>
+      <button id="pTog" aria-label="Toggle player box">&minus;</button>
+    </div>
+    <div id="pBody">
+      <div class="bar"><i id="hpF" style="background:#2ecc71"></i></div>
+      <div class="bar th"><i id="xpF" style="background:#f1c40f"></i></div>
+      <div class="inf">
+        <span id="iBeli"></span>
+        <span id="iZone"></span>
+        <span id="iFruit"></span>
+        <span id="iSword"></span>
+      </div>
+    </div>
+  </div>
+  <button id="menuTog">Menu</button>
+  <div id="menuGrid" class="hide">
+    <button data-m="shop">Shop (E)</button>
+    <button data-m="quest">Quest (Q)</button>
+    <button data-m="gacha">Gacha (G)</button>
+    <button data-m="stock">Stock (Y)</button>
+    <button data-m="fruit">Fruit Vault (T)</button>
+    <button data-m="chat">Chat</button>
+    <button data-m="pvp">PvP Arena (P)</button>
+    <button data-m="admin" class="admin-only">Admin (F2)</button>
+  </div>
+</div>
+
+<!-- CHAT (bottom-left) -->
+<div id="chatBox" class="ui">
+  <div id="chatPanel" class="hide">
+    <div id="chatLog"></div>
+    <input id="chatIn" maxlength="200" placeholder="Message (/ for commands)" autocomplete="off">
+  </div>
+  <button id="chatTog">Chat</button>
+</div>
+
+<!-- PvP chip (top-right) -->
+<button id="pvpChip" class="ui off">PvP OFF</button>
+
+<!-- Touch abilities (bottom-right, phones only) -->
+<div id="skills" class="ui touchOnly">
+  <button class="tb" data-k="z"><b>Z</b><small class="nm"></small><span class="cd"></span></button>
+  <button class="tb" data-k="x"><b>X</b><small class="nm"></small><span class="cd"></span></button>
+  <button class="tb" data-k="c"><b>C</b><small class="nm"></small><span class="cd"></span></button>
+  <button class="tb" data-k="f"><b>F</b><small class="nm"></small><span class="cd"></span></button>
+  <button class="tb" data-k="v"><b>V</b><small class="nm"></small><span class="cd"></span></button>
+  <button class="tb" data-k="r"><b>R</b><small class="nm"></small><span class="cd"></span></button>
+</div>
+
+<!-- PANELS -->
 <div id="shop" class="panel">
   <div class="sh-head">
     <div><h3>The Grand Bazaar</h3><p id="shopBeli"></p></div>
-    <button class="sh-x" onclick="toggleShop(false)">&times;</button>
+    <button class="sh-x" data-close="shop">&times;</button>
   </div>
   <div class="sh-tabs">
     <button class="sh-tab on" data-tab="fruit">Devil Fruits</button>
     <button class="sh-tab" data-tab="sword">Sword Dealer</button>
   </div>
   <div id="shopList" class="sh-grid"></div>
-  <p class="sh-foot">Press E to close</p>
+  <p class="sh-foot">Press E or tap the X to close</p>
 </div>
 
 <div id="quest" class="panel">
   <div class="sh-head">
     <div><h3>Elder Rowan</h3><p>Quest giver of Harbor Isle</p></div>
-    <button class="sh-x" onclick="toggleQuest(false)">&times;</button>
+    <button class="sh-x" data-close="quest">&times;</button>
   </div>
   <div id="qBody" class="q-body"></div>
 </div>
@@ -142,7 +247,7 @@ body.touch #chatLog{max-height:90px}
 <div id="gacha" class="panel">
   <div class="sh-head">
     <div><h3>Fruit Gacha</h3><p id="gachaInfo"></p></div>
-    <button class="sh-x" onclick="toggleGacha(false)">&times;</button>
+    <button class="sh-x" data-close="gacha">&times;</button>
   </div>
   <div id="gachaBody" class="q-body"></div>
 </div>
@@ -150,7 +255,7 @@ body.touch #chatLog{max-height:90px}
 <div id="stock" class="panel">
   <div class="sh-head">
     <div><h3>Stock Keeper</h3><p id="stockInfo"></p></div>
-    <button class="sh-x" onclick="toggleStock(false)">&times;</button>
+    <button class="sh-x" data-close="stock">&times;</button>
   </div>
   <div id="stockBody" class="fr-list"></div>
   <p class="sh-foot" id="stockFoot"></p>
@@ -159,12 +264,23 @@ body.touch #chatLog{max-height:90px}
 <div id="store" class="panel">
   <div class="sh-head">
     <div><h3>Your Fruit Vault</h3><p id="storeInfo"></p></div>
-    <button class="sh-x" onclick="toggleStore(false)">&times;</button>
+    <button class="sh-x" data-close="store">&times;</button>
   </div>
   <div id="storeBody" class="fr-list"></div>
-  <p class="sh-foot">Tap a fruit to equip it. Your current fruit is lost unless you store it first. Buy and roll fruits at the Fruit Gacha.</p>
+  <p class="sh-foot">Tap a fruit to equip it. Your current fruit is lost unless you store it first.</p>
 </div>
-<button id="fruitBtn" onclick="toggleStore()">Change fruit (T)</button>
+
+<div id="pvp" class="panel">
+  <div class="sh-head">
+    <div><h3>PvP Arena</h3><p>Duel other players for 60 seconds</p></div>
+    <button class="sh-x" data-close="pvp">&times;</button>
+  </div>
+  <div class="pv-status">
+    <button id="pvpBig" class="pv-big off">PvP is OFF</button>
+    <p class="pv-rules">Turn PvP on to be challenged and to challenge others. Players with PvP off cannot be duelled. Turning PvP off during a duel forfeits it.</p>
+  </div>
+  <div id="pvList" class="pv-list"></div>
+</div>
 
 <div id="admin">
   <h3>Admin Panel <span style="font-size:11px;opacity:.6;color:#fff">(F2 to hide)</span></h3>
@@ -188,41 +304,14 @@ body.touch #chatLog{max-height:90px}
   <div id="banList" class="list"></div>
 </div>
 
-<button id="admBtnPC" onclick="toggleAdmin()" style="position:fixed;right:10px;top:70px;z-index:6;display:none;padding:8px 12px;font-size:13px">Admin (F2)</button>
-<div id="duelBox" style="position:fixed;top:40%;left:50%;transform:translate(-50%,-50%);z-index:12;display:none;background:#14284a;color:#fff;padding:18px 22px;border-radius:12px;border:1px solid #d9a441;text-align:center">
-  <p id="duelText" style="margin:0 0 12px"></p>
+<div id="duelBox">
+  <p id="duelText"></p>
   <button id="duelYes">Accept</button>
   <button id="duelNo" style="margin-left:8px;background:#777;box-shadow:none;color:#fff">Decline</button>
 </div>
-<div id="chatBox">
-  <div id="chatLog"></div>
-  <input id="chatIn" maxlength="200" placeholder="Message (/ for commands, Esc to cancel)" autocomplete="off">
-</div>
 
 <canvas id="c"></canvas>
-
 <div id="rot">Rotate your phone to landscape for the best view</div>
-<div id="touchUI">
-  <div id="joyL" class="joy"><div class="knob"></div></div>
-  <div id="joyR" class="joy"><div class="knob"></div></div>
-  <div id="skills">
-    <button class="tb" data-k="f">F<span class="cd"></span></button>
-    <button class="tb" data-k="v">V<span class="cd"></span></button>
-    <button class="tb" data-k="r">R<span class="cd"></span></button>
-    <button class="tb" data-k="c">C<span class="cd"></span></button>
-    <button class="tb" data-k="x">X<span class="cd"></span></button>
-    <button class="tb" data-k="z">Z<span class="cd"></span></button>
-  </div>
-  <div id="menuT">
-    <button class="mb" data-k="e">Shop</button>
-    <button class="mb" data-k="q">Quest</button>
-    <button class="mb" data-k="g">Gacha</button>
-    <button class="mb" data-k="y">Stock</button>
-    <button class="mb" onclick="toggleStore()">Fruit</button>
-    <button class="mb" onclick="openChat()">Chat</button>
-    <button class="mb" id="admBtnT" onclick="toggleAdmin()" style="display:none">Admin</button>
-  </div>
-</div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -237,7 +326,7 @@ body.touch #chatLog{max-height:90px}
       g.beginPath(); g.arc(s / 2, s / 2, s / 2, 0, Math.PI * 2); g.clip();
       g.drawImage(img, 0, 0, s, s);
       document.getElementById('favicon').href = cv.toDataURL('image/png');
-    } catch (e) { /* keep logo.png as the icon */ }
+    } catch (e) {}
   };
   img.src = 'logo.png';
 })();
@@ -254,7 +343,6 @@ const FIREBASE_CONFIG = {
   measurementId: "G-P8K0WCM20F"
 };
 
-// Local cache so the game can read data instantly; every change is also written to Firebase
 const CACHE = {};
 let dbRef = null;
 const store = {
@@ -293,12 +381,13 @@ function initDB() {
 const dbReady = initDB();
 
 // ================= ONLINE PLAYERS + PVP DUELS =================
-const remote = {};            // other online players: name -> data
-let activeDuel = null;        // { id, opp, start, ending } for the local player
-let incomingDuel = null;      // duel request waiting for accept/decline
+const remote = {};
+let activeDuel = null;      // { id, opp, start, ending }
+let incomingDuel = null;    // { id, opp }
 let presenceRef = null, lastPresence = 0;
 let hitRef = null, hitListenId = null, seenHits = new Set();
-const DUEL_TIME = 60000;      // duels last 60 seconds
+const DUEL_TIME = 60000;
+const ONLINE_MS = 15000;
 
 function pairKey(a, b) { return [a, b].sort().join('__'); }
 
@@ -318,13 +407,13 @@ function setupPresence() {
   db.ref('duels').on('value', snap => onDuels(snap.val() || {}));
 }
 
-function pushPresence() {
+function pushPresence(force) {
   if (!presenceRef || !me.name) return;
   const now = performance.now();
-  if (now - lastPresence < 120) return;
+  if (!force && now - lastPresence < 120) return;
   lastPresence = now;
   presenceRef.set({ name: me.name, x: Math.round(me.x), y: Math.round(me.y), hp: Math.round(me.hp),
-    maxHp: me.maxHp, level: me.level, fruit: me.fruit, sword: me.sword, t: Date.now() });
+    maxHp: me.maxHp, level: me.level, fruit: me.fruit, sword: me.sword, pvp: !!me.pvp, t: Date.now() });
 }
 
 function onDuels(all) {
@@ -335,6 +424,7 @@ function onDuels(all) {
     if (!d || (d.a !== me.name && d.b !== me.name)) continue;
     const opp = d.a === me.name ? d.b : d.a;
     if (d.status === 'pending' && d.b === me.name) {
+      if (!me.pvp) { firebase.database().ref('duels/' + id).remove(); continue; }
       incomingDuel = { id, opp };
       showDuelBox(opp);
     } else if (d.status === 'active') {
@@ -354,7 +444,10 @@ function onDuels(all) {
 }
 
 function challengeDuel(opp) {
-  if (!remote[opp] || Date.now() - (remote[opp].t || 0) > 15000) return feedback(opp + ' is not online.');
+  const r = remote[opp];
+  if (!r || Date.now() - (r.t || 0) > ONLINE_MS) return feedback(opp + ' is not online.');
+  if (!me.pvp) return feedback('Turn PvP on first (PvP Arena).');
+  if (!r.pvp) return feedback(opp + ' has PvP turned off.');
   if (activeDuel) return feedback('You are already in a duel.');
   firebase.database().ref('duels/' + pairKey(me.name, opp))
     .set({ a: me.name, b: opp, status: 'pending', start: 0, winner: '' });
@@ -363,6 +456,7 @@ function challengeDuel(opp) {
 
 function acceptDuel() {
   if (!incomingDuel) return;
+  if (!me.pvp) { declineDuel(); return; }
   firebase.database().ref('duels/' + pairKey(me.name, incomingDuel.opp))
     .update({ status: 'active', start: Date.now() });
   hideDuelBox();
@@ -382,9 +476,31 @@ function endDuel(winner) {
   firebase.database().ref('duelhits/' + id).remove();
 }
 
+function setPvp(on) {
+  if (!me.name) return;
+  on = !!on;
+  if (!on && activeDuel && !activeDuel.ending) { activeDuel.ending = true; endDuel(activeDuel.opp); msg('You left PvP and forfeited the duel.'); }
+  if (!on && incomingDuel) declineDuel();
+  me.pvp = on;
+  pushPresence(true);
+  saveProgress();
+  msg(on ? 'PvP is ON. Other PvP players can duel you.' : 'PvP is OFF. You cannot be duelled.');
+  updatePvpUI();
+  renderPvp();
+}
+
+function updatePvpUI() {
+  const chip = document.getElementById('pvpChip');
+  chip.textContent = me.pvp ? 'PvP ON' : 'PvP OFF';
+  chip.className = 'ui ' + (me.pvp ? 'on' : 'off');
+  const big = document.getElementById('pvpBig');
+  big.textContent = me.pvp ? 'PvP is ON (tap to turn OFF)' : 'PvP is OFF (tap to turn ON)';
+  big.className = 'pv-big ' + (me.pvp ? 'on' : 'off');
+}
+
 // Attacker writes a hit; the victim's own game applies the damage
 function pvpStrike(mult, range) {
-  if (!activeDuel || inSafe(me.x, me.y)) return;
+  if (!activeDuel || !me.pvp || inSafe(me.x, me.y)) return;
   const o = remote[activeDuel.opp];
   if (!o || dist(me.x, me.y, o.x, o.y) > range) return;
   if (inSafe(o.x, o.y)) return;
@@ -408,7 +524,7 @@ function listenHits(id) {
 }
 
 function takeHit(dmg, by) {
-  if (!activeDuel || inSafe(me.x, me.y)) return;
+  if (!activeDuel || !me.pvp || inSafe(me.x, me.y)) return;
   me.hp -= dmg; me.flash = 0.25; addShake(4);
   texts.push({ x: me.x, y: me.y - 40, t: '-' + dmg, life: 0.8, max: 0.8, color: '#ff4d4d' });
   if (me.hp <= 0) {
@@ -418,7 +534,7 @@ function takeHit(dmg, by) {
 }
 
 function showDuelBox(opp) {
-  document.getElementById('duelText').textContent = opp + ' challenges you to a 60-second duel. Accept?';
+  document.getElementById('duelText').innerHTML = '<b>' + opp + '</b> challenges you to a 60-second PvP duel.';
   document.getElementById('duelBox').style.display = 'block';
 }
 function hideDuelBox() { document.getElementById('duelBox').style.display = 'none'; }
@@ -428,16 +544,20 @@ document.getElementById('duelNo').onclick = declineDuel;
 function drawRemotePlayers() {
   for (const n in remote) {
     const r = remote[n];
-    if (!r || Date.now() - (r.t || 0) > 15000) continue;
+    if (!r || Date.now() - (r.t || 0) > ONLINE_MS) continue;
     const px = r.dx ?? r.x, py = r.dy ?? r.y;
     r.dx = px + (r.x - px) * 0.2;
     r.dy = py + (r.y - py) * 0.2;
     const moving = Math.hypot(r.x - r.dx, r.y - r.dy) > 1;
     const F = FRUITS[r.fruit] || FRUITS.ember, S = SWORDS[r.sword] || SWORDS.wood;
+    if (activeDuel && activeDuel.opp === n) {
+      ctx.strokeStyle = 'rgba(255,80,80,' + (0.5 + 0.3 * Math.sin(time * 6)) + ')';
+      ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(r.dx, r.dy + 22, 22, 8, 0, 0, Math.PI * 2); ctx.stroke();
+    }
     drawHuman(r.dx, r.dy, { scale: 1, face: moving ? Math.atan2(r.y - r.dy, r.x - r.dx) : 0,
       skin: '#f1c7a0', hair: '#2b1b10', shirt: F.c, pants: '#2c3e50',
       walk: moving ? time * 8 : 0, busy: false, glow: F.g, sword: S, seed: 3 });
-    nameTag(r.dx, r.dy - 20, n + '  Lv ' + r.level, '#9fe3ff', (r.hp || 0) / (r.maxHp || 1), '#2ecc71');
+    nameTag(r.dx, r.dy - 20, n + '  Lv ' + r.level + (r.pvp ? '  PvP' : ''), r.pvp ? '#ff9a9a' : '#9fe3ff', (r.hp || 0) / (r.maxHp || 1), '#2ecc71');
   }
 }
 
@@ -446,14 +566,15 @@ function drawRemotePlayers() {
 const ADMIN_ACCOUNTS = { 'Hari_sanjay': '20112012harisanjay' };
 const STORE_ACCOUNTS = 'ol_accounts';
 const saveKey = n => 'ol_save_' + n;
-const MAX_LEVEL = 300; // players stop gaining levels here; admin can set higher
+const MAX_LEVEL = 300;
 
 // ================= TOUCH =================
 const isTouch = matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0;
 if (isTouch) document.body.classList.add('touch');
-const joy = { L: { x: 0, y: 0, id: null, on: false }, R: { x: 0, y: 0, id: null, on: false } };
-const holdBtn = { m1: false };
 let touchAim = 0;
+const touchVec = { x: 0, y: 0 };
+const TOUCH = { id: null, sx: 0, sy: 0, drag: false, atk: false };
+const mouse = { x: innerWidth / 2, y: innerHeight / 2, down: false };
 
 // ================= WORLD DATA =================
 const W = 3000, H = 3000;
@@ -464,12 +585,9 @@ const ISLANDS = [
   { z: 'dunes',  x: 2600, y: 1500, rx: 480,  ry: 900, ground: 'sand' },
   { z: 'magma',  x: 380,  y: 2600, rx: 520,  ry: 430, ground: 'rock' }
 ];
-// [top, bottom, speckle]
 const GROUND = { snow: ['#f4fbff', '#9fd0ea', '#ffffff'], grass: ['#8bd96f', '#2f7f3a', '#1f5f2a'],
                  sand: ['#f8e7b0', '#c9a050', '#a07a32'], rock: ['#4a332d', '#1d100e', '#ff6a2a'] };
 
-// lvl: [min, max] level range for regular NPCs. boss.lv is the boss level.
-// boss.abil: abilities the boss cycles through (see bossCast)
 const ZONES = {
   harbor: { name: 'Harbor Isle', color: '#c0392b', count: 12, lvl: [1, 12],
     mob:  { name: 'Bandit', hp: 60, dmg: 6, beli: 10, xp: 20, look: 'bandit', scale: 1 },
@@ -528,7 +646,6 @@ Object.assign(PAL, {
   crystal: { skin: '#f3e9ff', hair: '#b39ddb', shirt: '#9c6bff', pants: '#4a2f8a', hat: 'ice' }
 });
 
-// Extra boss abilities for the new bosses. Returns true when it handled the ability.
 function bossExtra(e, name, col, dmg) {
   if (name === 'vines') {
     for (let i = 0; i < 4; i++) {
@@ -555,7 +672,6 @@ function bossExtra(e, name, col, dmg) {
   return false;
 }
 
-// m1: visual per hit. sh: ring|beam|dash|orb|wave|pull|heal. fx: slow|stun|burn
 const NOPA = { ls: 0, crit: 0, spd: 1, regen: 0, thorns: 0, beliM: 1, cdr: 0, dm: 1, d: 'No passive' };
 const PS = o => Object.assign({}, NOPA, o);
 
@@ -630,7 +746,6 @@ const FRUITS = {
       { k: 'c', n: 'Crystal Storm', cd: 14, r: 200, m: 3.2, sh: 'orb', fx: 'slow' },
       { k: 'f', n: 'Crystal Shield', cd: 16, r: 60, sh: 'ring', ef: 'shield', h: 0.35, dur: 6 }],
     tf: { n: 'Genesis', v: 'halo' }, pa: PS({ regen: 3, d: 'Regenerate 3 HP per second' }) },
-
   gravity: { n: 'Gravity Fruit', p: 80000, lv: 85, c: '#5d6d7e', g: '#aab7b8', m1: ['fist', 'fist', 'slash'],
     sk: [
       { k: 'z', n: 'Gravity Pull', cd: 4, r: 220, m: 1.6, sh: 'pull', fx: 'slow' },
@@ -723,6 +838,7 @@ function inSafe(x, y) { return dist(x, y, SAFE.x, SAFE.y) < SAFE.r; }
 function healMe(v) { me.hp = Math.min(me.maxHp, me.hp + v); }
 function pasv() { return FRUITS[me.fruit].pa; }
 function applyDot(e, dur, dm) { e.dotT = dur; e.dotDps = dm * 0.4; }
+
 FRUITS.admin = { n: 'Admin Fruit', p: 0, lv: 1, c: '#ffd700', g: '#fff5b0', m1: ['star', 'star', 'star'], m1fx: 'stun', adminOnly: true,
   sk: [
     { k: 'z', n: 'Void Lance', cd: 2, r: 420, m: 6, sh: 'beam', dot: 8, fx: 'stun' },
@@ -763,7 +879,6 @@ const FRUIT_RAR = { ember: 'common', frost: 'common', stretch: 'common', sand: '
 for (const k in FRUIT_RAR) FRUITS[k].rar = FRUIT_RAR[k];
 const FRUIT_KEYS = Object.keys(FRUITS);
 
-// Swords: dmg multiplies your damage. b = blade colour, e = edge colour, len = blade length
 const SWORDS = {
   wood:    { n: 'Wooden Blade', p: 0,       lv: 1,   dmg: 1,    b: '#c89b5a', e: '#8b5a2b', len: 30 },
   cutlass: { n: 'Cutlass',      p: 3000,    lv: 10,  dmg: 1.25, b: '#d7dee8', e: '#7d93aa', len: 34 },
@@ -779,7 +894,6 @@ const RAR_COL = { common: '#b0b7c3', uncommon: '#5be38a', rare: '#4fc3f7', legen
 function rarBadge(r) { return '<span class="rar" style="background:' + (RAR_COL[r] || '#999') + '">' + (r || 'common') + '</span>'; }
 const SWORD_KEYS = Object.keys(SWORDS);
 
-// Quests run in order. lv = level needed to accept. kind: zone + boss flag.
 const QUESTS = [
   { t: 'Clear the Harbor',   d: 'Defeat 10 Bandits on Harbor Isle.',         lv: 1,  zone: 'harbor', boss: false, need: 10, rw: { beli: 800,    xp: 300 } },
   { t: 'Captain Blackhook',  d: 'Defeat Captain Blackhook, the pirate boss.', lv: 10, zone: 'harbor', boss: true,  need: 1,  rw: { beli: 3000,   xp: 1000,  sword: 'cutlass' } },
@@ -837,7 +951,7 @@ function saveAccounts(a) { store.setItem(STORE_ACCOUNTS, JSON.stringify(a)); }
 function getSave(n) { try { return JSON.parse(store.getItem(saveKey(n))); } catch (e) { return null; } }
 function putSave(n, d) { store.setItem(saveKey(n), JSON.stringify(d)); }
 
-// ================= WORLD BUILD (pre-rendered once) =================
+// ================= WORLD BUILD =================
 function blobPath(c, I, k) {
   c.beginPath();
   for (let i = 0; i <= 48; i++) {
@@ -849,10 +963,10 @@ function blobPath(c, I, k) {
   c.closePath();
 }
 
-const bg = document.createElement('canvas');
-bg.width = W * 0.5; bg.height = H * 0.5;
+const bgCanvas = document.createElement('canvas');
+bgCanvas.width = W * 0.5; bgCanvas.height = H * 0.5;
 (function buildBG() {
-  const c = bg.getContext('2d');
+  const c = bgCanvas.getContext('2d');
   c.setTransform(0.5, 0, 0, 0.5, 0, 0);
   const og = c.createLinearGradient(0, 0, 0, H);
   og.addColorStop(0, '#3bb3e0'); og.addColorStop(0.5, '#1479ad'); og.addColorStop(1, '#06334f');
@@ -904,19 +1018,21 @@ const cam = { x: 0, y: 0 };
 let time = 0, shake = 0, aim = 0, shopOpen = false, shopTab = 'fruit', questOpen = false;
 let isAdmin = false, notice = '', noticeT = 0;
 let enemies = [], projs = [], eprojs = [], hazards = [], clones = [], parts = [], effects = [], texts = [];
-const mouse = { x: innerWidth / 2, y: innerHeight / 2, down: false };
 const keys = {}, pressed = new Set();
 const me = {
   name: '', x: SPAWN.x, y: SPAWN.y, hp: 100, maxHp: 100, level: 1, xp: 0, beli: 0,
   fruit: 'ember', owned: ['ember'], sword: 'wood', swords: ['wood'],
   q: 0, qp: 0, qs: 'idle', slowT: 0, shield: 0, shieldT: 0, buffT: 0, buffM: 1,
-  vault: [], gachaNext: 0, gachaPending: null, stockBought: {}, noCd: false,
+  vault: [], gachaNext: 0, gachaPending: null, stockBought: {}, noCd: false, pvp: false,
   facing: { x: 0, y: -1 }, cds: {},
-  combo: { step: 0, timer: 0, cd: 0 }, flash: 0, moving: false, walk: 0, tfT: 0, tfCd: 0
+  combo: { step: 0, timer: 0, cd: 0 }, flash: 0, moving: false, walk: 0, tfT: 0, tfCd: 0, swCd: 0
 };
-const VW = () => innerWidth, VH = () => innerHeight;
 
 function msg(t) { notice = t; noticeT = 3; }
+function feedback(t) {
+  msg(t);
+  const a = document.getElementById('adMsg'); if (a) a.textContent = t;
+}
 function addShake(v) { shake = Math.max(shake, v); }
 function burst(x, y, color, n, speed, life) {
   for (let i = 0; i < n; i++) {
@@ -924,10 +1040,9 @@ function burst(x, y, color, n, speed, life) {
     parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: life * (0.6 + Math.random() * 0.6), max: life, color, s: 2 + Math.random() * 3.5 });
   }
 }
-function onScreen(x, y, pad) { return x > cam.x - pad && x < cam.x + VW() + pad && y > cam.y - pad && y < cam.y + VH() + pad; }
+function onScreen(x, y, pad) { return x > cam.x - pad && x < cam.x + innerWidth + pad && y > cam.y - pad && y < cam.y + innerHeight + pad; }
 
 // ================= ENEMIES =================
-// Regular NPCs get stats that grow with their level
 function scaledMob(m, lv) {
   return {
     hp: Math.round(m.hp * (1 + lv * 0.08)),
@@ -953,7 +1068,6 @@ function makeEnemy(zone, boss, slot) {
     name: m.name, pal: PAL[m.look], scale: m.scale, dead: false, respawn: 0, atk: 0, slow: 0, stun: 0, burn: 0,
     dotT: 0, dotDps: 0, kx: 0, ky: 0, flash: 0, walk: rand(0, 6), abT: 3, abI: 0 };
 }
-// Fixed spawn spots for regular NPCs: they always spawn and respawn at these points
 const SPOTS = {};
 (function buildSpots() {
   for (const z of Object.keys(ZONES)) {
@@ -1050,7 +1164,6 @@ function hurtPlayer(d) {
 }
 
 // ================= BOSS ABILITIES =================
-// Called when a boss is close to the player. Telegraphed ones appear as hazards first.
 function bossCast(e) {
   const Z = ZONES[e.zone], list = Z.boss.abil;
   const name = list[e.abI % list.length];
@@ -1095,7 +1208,7 @@ function bossCast(e) {
   }
 }
 
-// M1 combo: 3 hits, visual style and range set per fruit
+// M1 combo
 function basicAttack() {
   const c = me.combo;
   if (c.cd > 0 || inSafe(me.x, me.y)) return;
@@ -1265,7 +1378,9 @@ function toggleTF() {
 // ================= SAVE / LOAD =================
 function snapshot() {
   return { level: me.level, xp: me.xp, beli: me.beli, fruit: me.fruit, owned: me.owned.slice(),
-    sword: me.sword, swords: me.swords.slice(), q: me.q, qp: me.qp, qs: me.qs, vault: me.vault.slice(), gachaNext: me.gachaNext, gachaPending: me.gachaPending, stockBought: me.stockBought, noCd: me.noCd, x: me.x, y: me.y };
+    sword: me.sword, swords: me.swords.slice(), q: me.q, qp: me.qp, qs: me.qs, vault: me.vault.slice(),
+    gachaNext: me.gachaNext, gachaPending: me.gachaPending, stockBought: me.stockBought, noCd: me.noCd,
+    pvp: !!me.pvp, x: me.x, y: me.y };
 }
 function applySave(d) {
   if (!d) return;
@@ -1282,52 +1397,93 @@ function applySave(d) {
   me.qp = Number(d.qp) || 0;
   me.qs = ['idle', 'active', 'ready'].includes(d.qs) ? d.qs : 'idle';
   const okFruit = k => FRUITS[k] && k !== 'ember' && (isAdmin || !FRUITS[k].adminOnly);
-  // Older saves kept fruits as "owned": move them into the vault so nothing is lost
   me.vault = Array.isArray(d.vault) ? d.vault.filter(okFruit)
     : (Array.isArray(d.owned) ? d.owned.filter(k => okFruit(k) && k !== d.fruit) : []);
   me.gachaNext = Number(d.gachaNext) || 0;
   me.gachaPending = d.gachaPending && FRUITS[d.gachaPending] ? d.gachaPending : null;
   me.stockBought = d.stockBought && typeof d.stockBought === 'object' ? d.stockBought : {};
   me.noCd = !!d.noCd;
+  me.pvp = !!d.pvp;
   me.maxHp = maxHpFor(me.level); me.hp = me.maxHp;
   if (typeof d.x === 'number' && typeof d.y === 'number') { me.x = d.x; me.y = d.y; }
 }
 function saveProgress() { if (me.name) putSave(me.name, snapshot()); }
-// ================= PANELS =================
+
+// ================= PANEL + MENU HELPERS =================
+function setPanel(id, open) {
+  const el = document.getElementById(id);
+  el.style.display = open ? 'flex' : 'none';
+}
+function nearOK(p, r, label) {
+  if (dist(me.x, me.y, p.x, p.y) < r) return true;
+  msg('Walk up to ' + label);
+  return false;
+}
+function toggleMenu(force) {
+  const grid = document.getElementById('menuGrid');
+  const open = typeof force === 'boolean' ? force : grid.classList.contains('hide');
+  grid.classList.toggle('hide', !open);
+  document.getElementById('menuTog').textContent = open ? 'Close Menu' : 'Menu';
+  // Highlight buttons whose panel is currently open
+  document.querySelectorAll('#menuGrid button').forEach(b => {
+    const m = b.dataset.m;
+    const on = (m === 'shop' && shopOpen) || (m === 'quest' && questOpen) || (m === 'gacha' && gachaOpen) ||
+               (m === 'stock' && stockOpen) || (m === 'fruit' && storeOpen) || (m === 'chat' && chatOpen) ||
+               (m === 'pvp' && pvpOpen) || (m === 'admin' && adminOpen);
+    b.classList.toggle('on', on);
+  });
+}
+function menuAct(a) {
+  if (a === 'shop') { if (shopOpen) toggleShop(false); else if (nearOK(SHOP_POS, 200, 'the Grand Bazaar')) toggleShop(true); }
+  else if (a === 'quest') { if (questOpen) toggleQuest(false); else if (nearOK(QUEST_POS, 160, 'Elder Rowan')) toggleQuest(true); }
+  else if (a === 'gacha') { if (gachaOpen) toggleGacha(false); else if (nearOK(GACHA_POS, 160, 'the Fruit Gacha')) toggleGacha(true); }
+  else if (a === 'stock') { if (stockOpen) toggleStock(false); else if (nearOK(STORE_POS, 160, 'the Stock Keeper')) toggleStock(true); }
+  else if (a === 'fruit') toggleStore();
+  else if (a === 'chat') toggleChat();
+  else if (a === 'pvp') togglePvpPanel();
+  else if (a === 'admin') toggleAdmin();
+  toggleMenu(false);
+}
+document.getElementById('menuTog').onclick = () => toggleMenu();
+document.getElementById('menuGrid').addEventListener('click', e => {
+  const b = e.target.closest('button[data-m]');
+  if (b) menuAct(b.dataset.m);
+});
+document.getElementById('pTog').onclick = () => {
+  const box = document.getElementById('pbox');
+  box.classList.toggle('closed');
+  document.getElementById('pTog').textContent = box.classList.contains('closed') ? '+' : '\u2212';
+};
+document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => {
+  const id = b.dataset.close;
+  if (id === 'shop') toggleShop(false);
+  else if (id === 'quest') toggleQuest(false);
+  else if (id === 'gacha') toggleGacha(false);
+  else if (id === 'stock') toggleStock(false);
+  else if (id === 'store') toggleStore(false);
+  else if (id === 'pvp') togglePvpPanel(false);
+}));
+document.getElementById('pvpChip').onclick = () => setPvp(!me.pvp);
+document.getElementById('pvpBig').onclick = () => setPvp(!me.pvp);
+
+// ================= SHOP =================
+let shopPanelOpen = false;
 function toggleShop(force) {
   shopOpen = typeof force === 'boolean' ? force : !shopOpen;
-  document.getElementById('shop').style.display = shopOpen ? 'flex' : 'none';
+  setPanel('shop', shopOpen);
   if (shopOpen) renderShop();
 }
 function toggleQuest(force) {
   questOpen = typeof force === 'boolean' ? force : !questOpen;
-  document.getElementById('quest').style.display = questOpen ? 'flex' : 'none';
+  setPanel('quest', questOpen);
   if (questOpen) renderQuest();
 }
-
-// ================= SHOP =================
 function renderShop() {
   const list = document.getElementById('shopList');
   document.getElementById('shopBeli').textContent = 'Your Beli: ' + fmt(me.beli) + '   |   Level ' + me.level;
   let html = '';
   if (shopTab === 'fruit') {
-    html = '<div class="sh-card" style="grid-column:1/-1"><div class="sh-body"><h4>Fruits are not sold here</h4><small>Buy fruits at the Fruit Gacha (press G). Change your fruit with the Change fruit button on the left.</small></div></div>';
-    for (const k of []) {
-      const F = FRUITS[k], owned = me.owned.includes(k), on = me.fruit === k;
-      let btn;
-      if (on) btn = '<button class="sh-btn on" disabled>Equipped</button>';
-      else if (owned) btn = `<button class="sh-btn" data-act="equipF" data-k="${k}">Equip</button>`;
-      else if (me.level < F.lv) btn = `<button class="sh-btn" disabled>Requires level ${F.lv}</button>`;
-      else if (me.beli < F.p) btn = `<button class="sh-btn" disabled>Need ${fmt(F.p)} Beli</button>`;
-      else btn = `<button class="sh-btn" data-act="buyF" data-k="${k}">Buy for ${fmt(F.p)} Beli</button>`;
-      html += `<div class="sh-card">
-        <div class="sh-band" style="background:linear-gradient(135deg,${F.c},${F.g})"></div>
-        <div class="sh-body">
-          <h4>${F.n}</h4>${rarBadge(F.rar)}
-          <small>${F.sk.map(s => '<b>' + s.k.toUpperCase() + '</b> ' + s.n).join('<br>')}</small>
-          <div class="sh-stat">Passive: ${F.pa.d}</div><div class="sh-stat">Transform: ${F.tf.n} &middot; Level ${F.lv}</div>
-        </div>${btn}</div>`;
-    }
+    html = '<div class="sh-card" style="grid-column:1/-1"><div class="sh-body"><h4>Fruits are not sold here</h4><small>Buy fruits at the Fruit Gacha (Menu &gt; Gacha). Change your fruit from the Fruit Vault.</small></div></div>';
   } else {
     for (const k of SWORD_KEYS.filter(k => SWORDS[k].p > 0)) {
       const S = SWORDS[k], owned = me.swords.includes(k), on = me.sword === k;
@@ -1348,20 +1504,6 @@ function renderShop() {
   }
   list.innerHTML = html;
 }
-function buyFruit(k) {
-  const f = FRUITS[k];
-  if (me.beli < f.p) return msg('Not enough Beli');
-  if (me.level < f.lv) return msg('You need level ' + f.lv);
-  me.beli -= f.p; me.owned.push(k); me.fruit = k; me.tfT = 0;
-  msg('Bought ' + f.n + '!');
-  renderShop(); saveProgress();
-}
-function equipFruit(k) {
-  if (!me.owned.includes(k)) return;
-  me.fruit = k; me.tfT = 0;
-  msg('Equipped ' + FRUITS[k].n);
-  renderShop(); saveProgress();
-}
 function buySword(k) {
   const S = SWORDS[k];
   if (me.beli < S.p) return msg('Not enough Beli');
@@ -1380,9 +1522,7 @@ document.getElementById('shopList').addEventListener('click', e => {
   const b = e.target.closest('button[data-act]');
   if (!b || b.disabled) return;
   const k = b.dataset.k;
-  if (b.dataset.act === 'buyF') buyFruit(k);
-  else if (b.dataset.act === 'equipF') equipFruit(k);
-  else if (b.dataset.act === 'buyS') buySword(k);
+  if (b.dataset.act === 'buyS') buySword(k);
   else if (b.dataset.act === 'equipS') equipSword(k);
 });
 document.querySelectorAll('#shop .sh-tab').forEach(t => t.addEventListener('click', () => {
@@ -1450,6 +1590,43 @@ document.getElementById('qBody').addEventListener('click', e => {
   else if (b.dataset.act === 'claim') claimQuest();
 });
 
+// ================= PVP PANEL =================
+let pvpOpen = false;
+function togglePvpPanel(force) {
+  pvpOpen = typeof force === 'boolean' ? force : !pvpOpen;
+  setPanel('pvp', pvpOpen);
+  if (pvpOpen) renderPvp();
+}
+function renderPvp() {
+  updatePvpUI();
+  const list = document.getElementById('pvList');
+  list.replaceChildren();
+  const now = Date.now();
+  const names = Object.keys(remote).filter(n => now - (remote[n].t || 0) <= ONLINE_MS);
+  if (!names.length) {
+    const p = document.createElement('p'); p.className = 'sh-foot'; p.style.border = 'none';
+    p.textContent = 'No other players are online right now.';
+    list.append(p); return;
+  }
+  names.sort().forEach(n => {
+    const r = remote[n];
+    const row = document.createElement('div'); row.className = 'pv-row';
+    const nm = document.createElement('div'); nm.className = 'nm';
+    nm.textContent = n;
+    const sub = document.createElement('small'); sub.textContent = 'Level ' + r.level + '  |  ' + (FRUITS[r.fruit] ? FRUITS[r.fruit].n : '');
+    nm.append(sub);
+    const tag = document.createElement('span');
+    tag.className = 'pv-tag ' + (r.pvp ? 'on' : 'off');
+    tag.textContent = r.pvp ? 'PvP ON' : 'PvP OFF';
+    const btn = document.createElement('button'); btn.className = 'sh-btn';
+    btn.textContent = 'Duel';
+    btn.disabled = !r.pvp || !me.pvp || !!activeDuel;
+    btn.onclick = () => challengeDuel(n);
+    row.append(nm, tag, btn);
+    list.append(row);
+  });
+}
+
 // ================= ADMIN =================
 const fruitSelect = document.getElementById('adFruit');
 FRUIT_KEYS.forEach(k => { const o = document.createElement('option'); o.value = k; o.textContent = FRUITS[k].n; fruitSelect.appendChild(o); });
@@ -1460,23 +1637,27 @@ function refreshNames() {
   dl.innerHTML = '';
   for (const n of Object.keys(loadAccounts())) { const o = document.createElement('option'); o.value = n; dl.appendChild(o); }
 }
-function toggleAdmin() {
+let adminOpen = false;
+function toggleAdmin(force) {
   if (!isAdmin) return;
-  const p = document.getElementById('admin');
-  const open = p.style.display !== 'block';
-  p.style.display = open ? 'block' : 'none';
-  if (open) { refreshNames(); renderAdminLists(); }
+  adminOpen = typeof force === 'boolean' ? force : !adminOpen;
+  document.getElementById('admin').style.display = adminOpen ? 'block' : 'none';
+  if (adminOpen) { refreshNames(); renderAdminLists(); }
 }
 const notified = new Set();
 function getJSON(k, d) { try { const v = JSON.parse(store.getItem(k)); return v == null ? d : v; } catch (e) { return d; } }
 function setJSON(k, v) { store.setItem(k, JSON.stringify(v)); }
-function feedback(t) {
-  msg(t);
-  const a = document.getElementById('adMsg'); if (a) a.textContent = t;
-}
 function mkBtn(label, fn) { const b = document.createElement('button'); b.textContent = label; b.onclick = fn; return b; }
 
 // ----- chat -----
+let chatOpen = false;
+function toggleChat(force) {
+  chatOpen = typeof force === 'boolean' ? force : !chatOpen;
+  document.getElementById('chatPanel').classList.toggle('hide', !chatOpen);
+  document.getElementById('chatTog').textContent = chatOpen ? 'Close Chat' : 'Chat';
+  if (chatOpen) { renderChat(); setTimeout(() => document.getElementById('chatIn').focus(), 0); }
+  else document.getElementById('chatIn').blur();
+}
 function postChat(m) {
   const log = getJSON('ol_chat', []);
   log.push(Object.assign({ id: Date.now() + '_' + Math.random().toString(36).slice(2, 7), at: Date.now() }, m));
@@ -1494,7 +1675,8 @@ function renderChat() {
       }
     }
   }
-  const vis = log.filter(m => !m.to || m.to === me.name || m.from === me.name).slice(-8);
+  if (!chatOpen) return;
+  const vis = log.filter(m => !m.to || m.to === me.name || m.from === me.name).slice(-10);
   box.replaceChildren(...vis.map(m => {
     const row = document.createElement('div');
     const who = document.createElement('b');
@@ -1507,6 +1689,7 @@ function renderChat() {
     row.append(who, txt);
     return row;
   }));
+  box.scrollTop = box.scrollHeight;
 }
 function sendChat(raw) {
   const text = raw.trim();
@@ -1514,8 +1697,6 @@ function sendChat(raw) {
   if (text.startsWith('/')) return runCommand(text);
   postChat({ from: me.name, text: text.slice(0, 200) });
 }
-function openChat() { const i = document.getElementById('chatIn'); i.style.display = 'block'; i.focus(); }
-function closeChat() { const i = document.getElementById('chatIn'); i.value = ''; i.style.display = 'none'; i.blur(); }
 
 // ----- commands -----
 function runConsole() {
@@ -1530,8 +1711,8 @@ function runCommand(text) {
   const args = parts.slice(1);
   const accounts = loadAccounts();
   if (cmd === 'help') return feedback(isAdmin
-    ? 'Player: /w name msg, /report name reason. Admin: /kick, /ban, /unban, /bans, /givefruit key [player], /givesword key [player], /level n [player], /beli n [player], /announce msg, /clearreports'
-    : 'Commands: /w name message (whisper), /report name reason');
+    ? 'Player: /w name msg, /report name reason, /duel name. Admin: /kick, /ban, /unban, /bans, /givefruit key [player], /givesword key [player], /level n [player], /beli n [player], /announce msg, /clearreports, /nocd [player] on|off'
+    : 'Commands: /w name message (whisper), /report name reason, /duel name');
   if (cmd === 'w') {
     const to = args[0], body = args.slice(1).join(' ');
     if (!to || !body) return feedback('Usage: /w name message');
@@ -1615,13 +1796,14 @@ function kickedOut(reason) {
   me.name = ''; isAdmin = false;
   for (const k in keys) keys[k] = false;
   pressed.clear();
-  toggleShop(false); toggleQuest(false); toggleGacha(false); toggleStore(false); closeChat();
-  document.getElementById('admin').style.display = 'none';
+  toggleShop(false); toggleQuest(false); toggleGacha(false); toggleStore(false); toggleStock(false);
+  togglePvpPanel(false); toggleChat(false); toggleAdmin(false); toggleMenu(false);
+  hideDuelBox();
+  document.body.classList.remove('in', 'admin');
   document.getElementById('login').style.display = 'flex';
   setLoginErr('You were removed from the game: ' + reason);
 }
 
-// Admin grants to any account. Online players receive them through their own client, so they are not overwritten.
 function setPlayerField(target, type, value) {
   if (target === me.name) { applyGrant({ type, value, self: true }); return; }
   if (!hasOwn(loadAccounts(), target)) return feedback('No account named "' + target + '".');
@@ -1639,7 +1821,6 @@ function applyPendingGrants() {
   for (const g of q) applyGrant(g);
 }
 
-// ----- admin panel lists -----
 function renderAdminLists() {
   const rl = document.getElementById('repList'), bl = document.getElementById('banList');
   if (!rl || !bl) return;
@@ -1667,6 +1848,7 @@ function renderAdminLists() {
   });
 }
 
+// ================= GACHA, STOCK, VAULT =================
 const H3 = 3 * 60 * 60 * 1000, WEEK = 7 * 24 * 60 * 60 * 1000, MONTH = 30 * 24 * 60 * 60 * 1000;
 const GACHA_CD = 2 * 60 * 60 * 1000, VAULT_CAP = 5;
 const GACHA_POS = { x: 1500, y: 1840 }, STORE_POS = { x: 1300, y: 1640 };
@@ -1675,7 +1857,7 @@ const STOCK_QTY = { common: 5, uncommon: 3, rare: 2, legendary: 1, mythical: 1, 
 const STOCK_PRICE = { common: 5000, uncommon: 20000, rare: 90000, legendary: 500000, mythical: 2500000, celestial: 12000000 };
 const POOL = {};
 for (const [t] of GACHA_ODDS) POOL[t] = Object.keys(FRUIT_RAR).filter(k => FRUIT_RAR[k] === t && k !== 'ember' && k !== 'admin');
-let gachaOpen = false, storeOpen = false, storeTab = 'stock', gachaReadyFlag = null, stockSig = '';
+let gachaOpen = false, storeOpen = false, gachaReadyFlag = null, stockSig = '', stockOpen = false;
 
 function rng(seed) {
   let t = seed >>> 0;
@@ -1688,7 +1870,6 @@ function rng(seed) {
 }
 function pick(list, rnd) { return list[Math.floor(rnd() * list.length)]; }
 
-// Stock is the same for everyone at the same moment: it is seeded by the time window
 function currentStock(now) {
   const out = [];
   const hb = Math.floor(now / H3), r = rng(hb * 7919 + 11);
@@ -1712,7 +1893,6 @@ function fmtTime(ms) {
 function hasVaultRoom() { return isAdmin || me.vault.length < VAULT_CAP; }
 function textLine(t) { const p = document.createElement('p'); p.textContent = t; p.style.margin = '8px 0'; p.style.fontSize = '13px'; return p; }
 
-// Each fruit gets its own drawn look, based on its name, tinted by rarity
 function fruitIconCanvas(key, size) {
   const F = FRUITS[key];
   const cv = document.createElement('canvas'); cv.width = size; cv.height = size;
@@ -1726,9 +1906,9 @@ function fruitIconCanvas(key, size) {
   const glow = c2.createRadialGradient(cx, cy, size * 0.1, cx, cy, size * 0.5);
   glow.addColorStop(0, col); glow.addColorStop(1, 'rgba(0,0,0,0)');
   c2.globalAlpha = 0.45; c2.fillStyle = glow; c2.fillRect(0, 0, size, size); c2.globalAlpha = 1;
-  const bg = c2.createRadialGradient(cx - rx * 0.3, cy - ry * 0.3, size * 0.02, cx, cy, ry * 1.2);
-  bg.addColorStop(0, F.g); bg.addColorStop(1, F.c);
-  c2.fillStyle = bg; c2.beginPath(); c2.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2); c2.fill();
+  const grd = c2.createRadialGradient(cx - rx * 0.3, cy - ry * 0.3, size * 0.02, cx, cy, ry * 1.2);
+  grd.addColorStop(0, F.g); grd.addColorStop(1, F.c);
+  c2.fillStyle = grd; c2.beginPath(); c2.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2); c2.fill();
   c2.strokeStyle = shade(F.c, -50); c2.lineWidth = Math.max(1, size * 0.02); c2.stroke();
   c2.save(); c2.beginPath(); c2.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2); c2.clip();
   const dark = shade(F.c, -60), light = F.g;
@@ -1770,20 +1950,33 @@ function fruitCard(key, sub) {
   card.append(band, body);
   return card;
 }
+function fruitRow(key, sub) {
+  const F = FRUITS[key];
+  const row = document.createElement('div'); row.className = 'fr-row';
+  const ic = document.createElement('div');
+  ic.style.cssText = 'flex:0 0 auto;width:60px;height:60px;border-radius:12px;background:radial-gradient(circle,#1d3a63,#0a1830);display:flex;align-items:center;justify-content:center';
+  ic.append(fruitIconCanvas(key, 56));
+  const info = document.createElement('div'); info.className = 'fr-info';
+  const h = document.createElement('h4'); h.textContent = F.n;
+  const badge = document.createElement('span'); badge.className = 'rar';
+  badge.style.background = RAR_COL[F.rar] || '#999'; badge.textContent = F.rar;
+  const small = document.createElement('small'); small.textContent = sub || '';
+  info.append(h, badge, small);
+  row.append(ic, info);
+  return row;
+}
 
-// ----- fruit power changes -----
 function setFruit(k) {
   const old = me.fruit;
   if (k === old) return;
   me.fruit = k; me.tfT = 0;
-  if (document.getElementById('store') && storeOpen) renderStore();
+  if (storeOpen) renderStore();
   msg(old !== 'ember' ? FRUITS[old].n + ' is gone. Now using ' + FRUITS[k].n : 'Now using ' + FRUITS[k].n);
 }
 function confirmLoss(next) {
   return me.fruit === 'ember' || me.fruit === next || confirm('Your current fruit ' + FRUITS[me.fruit].n + ' will be lost for good. Continue?');
 }
 
-// ----- gacha -----
 function rollGacha() {
   if (!isAdmin && me.level < 11) return feedback('Reach level 11 to roll fruits.');
   if (me.gachaPending) return feedback('Decide on your current roll first.');
@@ -1823,7 +2016,6 @@ function gachaLeave() {
   saveProgress(); renderGacha();
 }
 
-// ----- storage keeper -----
 function storeCurrent() {
   if (me.fruit === 'ember') return feedback('Ember Fruit is your base power and cannot be stored.');
   if (!hasVaultRoom()) return feedback('Your vault is full.');
@@ -1863,36 +2055,20 @@ function buyStock(key, win) {
   saveProgress(); renderStock(); renderStore();
 }
 
-// ----- panels -----
 function toggleGacha(force) {
   gachaOpen = typeof force === 'boolean' ? force : !gachaOpen;
-  document.getElementById('gacha').style.display = gachaOpen ? 'flex' : 'none';
+  setPanel('gacha', gachaOpen);
   if (gachaOpen) renderGacha();
 }
 function toggleStore(force) {
   storeOpen = typeof force === 'boolean' ? force : !storeOpen;
-  document.getElementById('store').style.display = storeOpen ? 'flex' : 'none';
+  setPanel('store', storeOpen);
   if (storeOpen) renderStore();
 }
 function updateGachaTimer() {
   const el = document.getElementById('gachaTimer'); if (!el) return;
   const left = gachaLeft();
   el.textContent = (isAdmin || me.noCd) ? 'No cooldown on your account.' : left > 0 ? 'Next roll in ' + fmtTime(left) : 'Ready to roll.';
-}
-function fruitRow(key, sub) {
-  const F = FRUITS[key];
-  const row = document.createElement('div'); row.className = 'fr-row';
-  const ic = document.createElement('div');
-  ic.style.cssText = 'flex:0 0 auto;width:60px;height:60px;border-radius:12px;background:radial-gradient(circle,#1d3a63,#0a1830);display:flex;align-items:center;justify-content:center';
-  ic.append(fruitIconCanvas(key, 56));
-  const info = document.createElement('div'); info.className = 'fr-info';
-  const h = document.createElement('h4'); h.textContent = F.n;
-  const badge = document.createElement('span'); badge.className = 'rar';
-  badge.style.background = RAR_COL[F.rar] || '#999'; badge.textContent = F.rar;
-  const small = document.createElement('small'); small.textContent = sub || '';
-  info.append(h, badge, small);
-  row.append(ic, info);
-  return row;
 }
 function renderGacha() {
   const body = document.getElementById('gachaBody');
@@ -1918,10 +2094,9 @@ function renderGacha() {
   updateGachaTimer();
 }
 
-let stockOpen = false;
 function toggleStock(force) {
   stockOpen = typeof force === 'boolean' ? force : !stockOpen;
-  document.getElementById('stock').style.display = stockOpen ? 'flex' : 'none';
+  setPanel('stock', stockOpen);
   if (stockOpen) renderStock();
 }
 function fmtLong(ms) {
@@ -2049,33 +2224,35 @@ function login() {
 }
 function startGame(name, admin) {
   me.name = name; isAdmin = admin; me.loginAt = Date.now();
-  document.getElementById('admBtnT').style.display = admin && isTouch ? '' : 'none';
-  document.getElementById('admBtnPC').style.display = admin && !isTouch ? '' : 'none';
+  document.body.classList.toggle('admin', admin);
   const s = getSave(name);
   applySave(s);
   if (!s) saveProgress();
   applyPendingGrants();
   setupPresence();
+  document.body.classList.add('in');
+  if (isTouch) { document.getElementById('pbox').classList.add('closed'); document.getElementById('pTog').textContent = '+'; }
+  updatePvpUI();
   renderChat();
   document.getElementById('login').style.display = 'none';
-  msg(admin ? 'Welcome, admin! Press F2 for the admin panel.' : 'Welcome, ' + name + '!');
+  msg(admin ? 'Welcome, admin! Use the Menu or F2 for the admin panel.' : 'Welcome, ' + name + '!');
 }
 document.getElementById('start').onclick = () => dbReady.then(ok => { if (ok) login(); });
 document.getElementById('name').addEventListener('keydown', e => { if (e.key === 'Enter') dbReady.then(ok => { if (ok) login(); }); });
 document.getElementById('passkey').addEventListener('keydown', e => { if (e.key === 'Enter') dbReady.then(ok => { if (ok) login(); }); });
 
-// ================= INPUT =================
+// ================= INPUT (PC keys) =================
 addEventListener('keydown', e => {
-  if (e.key === 'Enter' && me.name && e.target.tagName !== 'INPUT') { e.preventDefault(); openChat(); return; }
+  if (e.key === 'Enter' && me.name && e.target.tagName !== 'INPUT') { e.preventDefault(); toggleChat(true); return; }
   if (['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName)) return;
   const k = e.key.toLowerCase();
   if (k === ' ') e.preventDefault();
-  if (k === 'f2') { toggleAdmin(); return; }
+  if (k === 'f2') { if (me.name) toggleAdmin(); return; }
   if (!keys[k]) pressed.add(k);
   keys[k] = true;
 });
 addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
-addEventListener('blur', () => { for (const k in keys) keys[k] = false; mouse.down = false; });
+addEventListener('blur', () => { for (const k in keys) keys[k] = false; mouse.down = false; TOUCH.id = null; TOUCH.atk = false; touchVec.x = 0; touchVec.y = 0; });
 
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
@@ -2090,10 +2267,82 @@ canvas.addEventListener('mousedown', e => { if (e.button === 0) mouse.down = tru
 addEventListener('mouseup', () => { mouse.down = false; });
 addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
 canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+// ================= TOUCH: drag to move, tap/hold to attack =================
+// Drag anywhere to walk in that direction. A press without dragging attacks toward the touch point.
+canvas.addEventListener('pointerdown', e => {
+  if (e.pointerType !== 'touch' || !me.name) return;
+  if (TOUCH.id !== null) return;
+  e.preventDefault();
+  TOUCH.id = e.pointerId; TOUCH.sx = e.clientX; TOUCH.sy = e.clientY;
+  TOUCH.drag = false; TOUCH.atk = true;
+  touchAim = Math.atan2(e.clientY - innerHeight / 2, e.clientX - innerWidth / 2);
+  try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
+});
+canvas.addEventListener('pointermove', e => {
+  if (e.pointerId !== TOUCH.id) return;
+  const dx = e.clientX - TOUCH.sx, dy = e.clientY - TOUCH.sy, d = Math.hypot(dx, dy);
+  if (!TOUCH.drag && d > 16) TOUCH.drag = true;
+  if (TOUCH.drag) {
+    TOUCH.atk = false;
+    touchVec.x = clamp(dx / 60, -1, 1);
+    touchVec.y = clamp(dy / 60, -1, 1);
+    touchAim = Math.atan2(dy, dx);
+  }
+});
+const endTouch = e => {
+  if (e.pointerId !== TOUCH.id) return;
+  TOUCH.id = null; TOUCH.atk = false; TOUCH.drag = false;
+  touchVec.x = 0; touchVec.y = 0;
+};
+canvas.addEventListener('pointerup', endTouch);
+canvas.addEventListener('pointercancel', endTouch);
+
+// Ability buttons (phones)
+document.querySelectorAll('#skills [data-k]').forEach(b => {
+  b.addEventListener('pointerdown', e => { e.preventDefault(); pressed.add(b.dataset.k); });
+});
+
+function syncDom() {
+  if (!me.name) return;
+  // Player box
+  document.getElementById('pName').textContent = me.name;
+  document.getElementById('pLv').textContent = 'Lv ' + me.level + (me.level >= MAX_LEVEL ? ' MAX' : '');
+  document.getElementById('hpF').style.width = (clamp(me.hp / me.maxHp, 0, 1) * 100) + '%';
+  const maxed = me.level >= MAX_LEVEL;
+  document.getElementById('xpF').style.width = (maxed ? 100 : clamp(me.xp / xpNeeded(me.level), 0, 1) * 100) + '%';
+  const F = FRUITS[me.fruit], S = SWORDS[me.sword] || SWORDS.wood;
+  const z = zoneAt(me.x, me.y);
+  document.getElementById('iBeli').textContent = 'Beli: ' + fmt(me.beli);
+  document.getElementById('iZone').textContent = 'Zone: ' + (inSafe(me.x, me.y) ? 'Safe Zone' : z ? ZONES[z].name : 'Open Sea');
+  document.getElementById('iFruit').textContent = 'Fruit: ' + F.n;
+  document.getElementById('iFruit').style.color = F.g;
+  document.getElementById('iSword').textContent = 'Sword: ' + S.n + ' (x' + S.dmg + ')';
+  document.getElementById('iSword').style.color = S.b;
+  updatePvpUI();
+
+  // Ability buttons (phones)
+  if (isTouch) {
+    document.querySelectorAll('#skills .tb').forEach(b => {
+      const k = b.dataset.k;
+      let name = '', cd = 0, max = 1;
+      const idx = ['z', 'x', 'c', 'f'].indexOf(k);
+      if (idx >= 0) { const sk = F.sk[idx]; name = sk.n; cd = me.cds[k] || 0; max = sk.cd; }
+      else if (k === 'v') { name = F.tf.n; cd = me.tfT > 0 ? 0 : me.tfCd; max = 35; }
+      else if (k === 'r') { name = S.ab ? 'Dominion' : 'No ability'; cd = me.swCd || 0; max = S.abCd || 1; }
+      b.querySelector('.nm').textContent = name;
+      b.classList.toggle('dis', cd > 0);
+      const s = b.querySelector('.cd');
+      s.textContent = cd > 0 ? cd.toFixed(1) : '';
+      s.style.visibility = cd > 0 ? 'visible' : 'hidden';
+    });
+  }
+}
 setInterval(saveProgress, 5000);
 addEventListener('pagehide', saveProgress);
-// ================= ATTACK ANIMATION STATE =================
+
 const anim = { m1: { t: 0, max: 0.24, dir: 1, arc: 2.5 }, cast: { t: 0, max: 0.45, c: '#fff', g: '#fff' } };
+const touchFx = { t: 0 };
 
 // ================= UPDATE =================
 function update(dt) {
@@ -2105,7 +2354,7 @@ function update(dt) {
   if (keys['s'] || keys['arrowdown']) my++;
   if (keys['a'] || keys['arrowleft']) mx--;
   if (keys['d'] || keys['arrowright']) mx++;
-  mx += joy.L.x; my += joy.L.y;
+  mx += touchVec.x; my += touchVec.y;
   { const l = Math.hypot(mx, my); if (l > 1) { mx /= l; my /= l; } }
   me.moving = !!(mx || my);
   if (me.moving) me.walk += dt * 10;
@@ -2117,9 +2366,7 @@ function update(dt) {
   me.x = clamp(me.x + mx * sp, 20, W - 20);
   me.y = clamp(me.y + my * sp, 20, H - 20);
 
-  cam.x = me.x - VW() / 2; cam.y = me.y - VH() / 2;
-  const rm = Math.hypot(joy.R.x, joy.R.y);
-  if (rm > 0.25) touchAim = Math.atan2(joy.R.y, joy.R.x);
+  cam.x = me.x - innerWidth / 2; cam.y = me.y - innerHeight / 2;
   aim = isTouch ? touchAim : Math.atan2(mouse.y + cam.y - me.y, mouse.x + cam.x - me.x);
   me.facing.x = Math.cos(aim); me.facing.y = Math.sin(aim);
 
@@ -2140,23 +2387,25 @@ function update(dt) {
     endDuel(myPct >= oPct ? me.name : activeDuel.opp);
   }
 
-  if (mouse.down || keys[' '] || rm > 0.25 || holdBtn.m1) basicAttack();
+  // Attacks: PC mouse / space / hold; phone press-and-hold without dragging
+  const touchAttacking = isTouch && TOUCH.atk && !TOUCH.drag;
+  if (mouse.down || keys[' '] || touchAttacking) basicAttack();
   ['z', 'x', 'c', 'f'].forEach((k, i) => { if (pressed.has(k)) useSkill(i); });
   if (pressed.has('v')) toggleTF();
   if (pressed.has('r')) useSwordAbility();
-  if (pressed.has('g')) { if (gachaOpen) toggleGacha(false); else if (dist(me.x, me.y, GACHA_POS.x, GACHA_POS.y) < 140) toggleGacha(true); else msg('Walk up to the Fruit Gacha to roll'); }
-  if (pressed.has('t')) toggleStore();
-  if (pressed.has('y')) { if (stockOpen) toggleStock(false); else if (dist(me.x, me.y, STORE_POS.x, STORE_POS.y) < 140) toggleStock(true); else msg('Walk up to the Stock Keeper'); }
-  if (stockOpen && dist(me.x, me.y, STORE_POS.x, STORE_POS.y) > 220) toggleStock(false);
-  if (gachaOpen && dist(me.x, me.y, GACHA_POS.x, GACHA_POS.y) > 220) toggleGacha(false);
-  if (pressed.has('e')) toggleShop();
-  if (pressed.has('q')) {
-    if (questOpen) toggleQuest(false);
-    else if (dist(me.x, me.y, QUEST_POS.x, QUEST_POS.y) < 140) toggleQuest(true);
-    else msg('Walk up to Elder Rowan to talk');
-  }
-  if (questOpen && dist(me.x, me.y, QUEST_POS.x, QUEST_POS.y) > 220) toggleQuest(false);
+  if (pressed.has('e')) menuAct('shop');
+  if (pressed.has('q')) menuAct('quest');
+  if (pressed.has('g')) menuAct('gacha');
+  if (pressed.has('y')) menuAct('stock');
+  if (pressed.has('t')) menuAct('fruit');
+  if (pressed.has('p')) menuAct('pvp');
   pressed.clear();
+
+  // Auto-close panels when you walk away from their NPC
+  if (shopOpen && dist(me.x, me.y, SHOP_POS.x, SHOP_POS.y) > 260) toggleShop(false);
+  if (questOpen && dist(me.x, me.y, QUEST_POS.x, QUEST_POS.y) > 220) toggleQuest(false);
+  if (gachaOpen && dist(me.x, me.y, GACHA_POS.x, GACHA_POS.y) > 220) toggleGacha(false);
+  if (stockOpen && dist(me.x, me.y, STORE_POS.x, STORE_POS.y) > 220) toggleStock(false);
 
   // Player projectiles
   for (const p of projs) {
@@ -2187,7 +2436,7 @@ function update(dt) {
   }
   eprojs = eprojs.filter(p => p.life > 0);
 
-  // Boss hazards (telegraphed bursts and lingering pools)
+  // Boss hazards
   for (const h of hazards) {
     h.t -= dt;
     if (h.type === 'burst') {
@@ -2269,6 +2518,9 @@ function update(dt) {
   if (noticeT > 0) noticeT -= dt;
   shake *= 0.88;
   if (shake < 0.05) shake = 0;
+
+  touchFx.t -= dt;
+  if (touchFx.t <= 0) { touchFx.t = 0.1; syncDom(); }
 }
 
 // ================= DRAWING =================
@@ -2328,7 +2580,6 @@ function drawDeco(d) {
   }
 }
 
-// Draws a person with shading, outline, and facial detail
 function drawHuman(x, y, o) {
   const sd = o.seed || 0, sc = o.scale || 1;
   y -= o.walk ? Math.abs(Math.sin(o.walk)) * 1.6 * sc : Math.sin(time * 3 + sd) * 0.6 * sc;
@@ -2344,7 +2595,6 @@ function drawHuman(x, y, o) {
   }
   ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(0,0,0,0.35)';
 
-  // Legs and shoes
   const lg = ctx.createLinearGradient(x, 0, x + 8 * s, 0);
   lg.addColorStop(0, shade(o.pants, 25)); lg.addColorStop(1, shade(o.pants, -25));
   ctx.fillStyle = lg;
@@ -2354,23 +2604,19 @@ function drawHuman(x, y, o) {
   rr(x - 7 * s - step * 0.5, y + 19 * s, 7 * s, 4 * s, 2 * s); ctx.fill();
   rr(x + 0.5 * s + step * 0.5, y + 19 * s, 7 * s, 4 * s, 2 * s); ctx.fill();
 
-  // Back arm
   ctx.fillStyle = dk; rr(x - 12 * s + step * 0.4, y - 6 * s, 4.5 * s, 14 * s, 2 * s); ctx.fill();
 
-  // Torso with side shading and highlight
   const tg = ctx.createLinearGradient(x - 9 * s, 0, x + 9 * s, 0);
   tg.addColorStop(0, shade(o.shirt, 30)); tg.addColorStop(0.55, o.shirt); tg.addColorStop(1, dk);
   ctx.fillStyle = tg; rr(x - 9 * s, y - 8 * s, 18 * s, 20 * s, 5 * s); ctx.fill(); ctx.stroke();
   ctx.fillStyle = '#2b1d14'; ctx.fillRect(x - 9 * s, y + 8 * s, 18 * s, 2.5 * s);
   ctx.fillStyle = 'rgba(255,255,255,0.18)'; ctx.fillRect(x - 6 * s, y - 6 * s, 2 * s, 14 * s);
 
-  // Front arm and hand
   const reach = (o.lunge || 0) * 9 * s;
   const sw = -step * 0.4 + reach;
   ctx.fillStyle = o.shirt; rr(x + 7.5 * s + sw, y - 6 * s, 4.5 * s, 14 * s, 2 * s); ctx.fill(); ctx.stroke();
   ctx.fillStyle = sk; ctx.beginPath(); ctx.arc(x + 9.75 * s + sw, y + 9 * s, 2.6 * s, 0, Math.PI * 2); ctx.fill();
 
-  // Head with radial shading
   const hg = ctx.createRadialGradient(x - 3 * s, hy - 3 * s, 1, x, hy, 10 * s);
   hg.addColorStop(0, shade(sk, 35)); hg.addColorStop(1, shade(sk, -15));
   ctx.fillStyle = hg; ctx.beginPath(); ctx.arc(x, hy, 9.5 * s, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
@@ -2398,7 +2644,6 @@ function drawHuman(x, y, o) {
     ctx.lineTo(x + 6 * s, hy - 13 * s); ctx.lineTo(x + 11 * s, hy - 2 * s); ctx.closePath(); ctx.fill();
   }
 
-  // Eyes with iris and highlight
   const look = Math.cos(o.face) * 1.5 * s, ey = hy + 0.5 * s;
   for (const ex of [-3.5, 3.5]) {
     ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.ellipse(x + ex * s + look, ey, 2.3 * s, 2.6 * s * blink, 0, 0, Math.PI * 2); ctx.fill();
@@ -2413,7 +2658,6 @@ function drawHuman(x, y, o) {
   ctx.strokeStyle = 'rgba(80,30,20,0.7)'; ctx.lineWidth = 1.2 * s;
   ctx.beginPath(); ctx.arc(x + look * 0.5, hy + 4 * s, 2 * s, 0.2, Math.PI - 0.2); ctx.stroke();
 
-  // Casting arm and glowing palm
   if (o.cast) {
     const c = o.cast, k = Math.sin(c.p * Math.PI);
     const sx = x + 7.5 * s, sy = y - 4 * s, L = (12 + 6 * k) * s;
@@ -2429,7 +2673,6 @@ function drawHuman(x, y, o) {
     ctx.globalAlpha = 1;
   }
 
-  // Sword (colour and length come from the equipped sword)
   if (o.sword) {
     const S = o.sword;
     const hx = x + 9.75 * s + sw, hyy = y + 9 * s, len = S.len;
@@ -2496,6 +2739,8 @@ function drawQuestGiver() {
   nameTag(x, y - 20, 'Elder Rowan', '#ffe066', 0, '#fff');
 }
 
+function drawRemoteLabelsAndDuel() {}
+
 function drawPlayer() {
   const F = FRUITS[me.fruit], tf = me.tfT > 0, v = tf ? F.tf.v : '';
   const f = Math.sin(time * 8);
@@ -2536,7 +2781,7 @@ function drawPlayer() {
     ctx.strokeStyle = '#ffe98a'; ctx.lineWidth = 3; ctx.shadowColor = '#ffe98a'; ctx.shadowBlur = 12;
     ctx.beginPath(); ctx.ellipse(me.x, me.y - 40, 11, 3.5, 0, 0, Math.PI * 2); ctx.stroke(); ctx.shadowBlur = 0;
   }
-  nameTag(me.x, me.y - 20, me.name + '  Lv ' + me.level, '#ffd34d', me.hp / me.maxHp, '#2ecc71');
+  nameTag(me.x, me.y - 20, me.name + '  Lv ' + me.level + (me.pvp ? '  PvP' : ''), me.pvp ? '#ff9a9a' : '#ffd34d', me.hp / me.maxHp, '#2ecc71');
 }
 
 function drawM1(f, p) {
@@ -2545,7 +2790,6 @@ function drawM1(f, p) {
   const head = start + dir * f.arc * p;
   ctx.lineCap = 'round';
   if (f.k === 'slash' || f.k === 'claw' || f.k === 'fist') {
-    // Fading trail behind the blade
     for (let i = 0; i < 5; i++) {
       let tail = head - dir * 0.22 * i;
       if (dir * (tail - start) < 0) tail = start;
@@ -2555,18 +2799,16 @@ function drawM1(f, p) {
       ctx.shadowColor = f.g; ctx.shadowBlur = 14;
       ctx.beginPath(); ctx.arc(f.x, f.y, f.r, tail, head, dir < 0); ctx.stroke();
     }
-    // Bright tip of the blade
     const hx = f.x + Math.cos(head) * f.r, hy = f.y + Math.sin(head) * f.r;
     ctx.globalAlpha = al; ctx.fillStyle = '#ffffff'; ctx.shadowColor = f.g; ctx.shadowBlur = 18;
     ctx.beginPath(); ctx.arc(hx, hy, (big ? 6 : 4) * (1 - p * 0.5), 0, Math.PI * 2); ctx.fill();
-    // Sparks flying off the tip
     ctx.fillStyle = f.g;
     for (let k = 0; k < 3; k++) {
       const sa = head + dir * (k * 0.45 + 0.2 + Math.random() * 0.2), sr = f.r * (0.92 + Math.random() * 0.12);
       ctx.globalAlpha = al * 0.9;
       ctx.beginPath(); ctx.arc(f.x + Math.cos(sa) * sr, f.y + Math.sin(sa) * sr, 2 + Math.random() * 1.5, 0, Math.PI * 2); ctx.fill();
     }
-    if (f.k === 'fist') { // shockwave ring for fist hits
+    if (f.k === 'fist') {
       ctx.globalAlpha = al * 0.8; ctx.strokeStyle = f.c; ctx.lineWidth = 8 * al + 1;
       ctx.beginPath(); ctx.arc(f.x, f.y, f.r * (0.3 + 0.7 * p), 0, Math.PI * 2); ctx.stroke();
     }
@@ -2638,7 +2880,6 @@ function drawEffects() {
   }
 }
 
-// Boss telegraphs: dashed rings that fill up before a burst, and lingering pools
 function drawHazards() {
   for (const h of hazards) {
     if (!onScreen(h.x, h.y, h.r + 40)) continue;
@@ -2671,9 +2912,9 @@ function drawBossLairs() {
 function drawGachaMachine() {
   const x = GACHA_POS.x, y = GACHA_POS.y;
   ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.beginPath(); ctx.ellipse(x, y + 30, 34, 10, 0, 0, Math.PI * 2); ctx.fill();
-  const bg = ctx.createLinearGradient(x - 26, 0, x + 26, 0);
-  bg.addColorStop(0, '#4a1d5c'); bg.addColorStop(1, '#2a0f36');
-  ctx.fillStyle = bg; rr(x - 26, y - 4, 52, 32, 6); ctx.fill();
+  const bg2 = ctx.createLinearGradient(x - 26, 0, x + 26, 0);
+  bg2.addColorStop(0, '#4a1d5c'); bg2.addColorStop(1, '#2a0f36');
+  ctx.fillStyle = bg2; rr(x - 26, y - 4, 52, 32, 6); ctx.fill();
   ctx.fillStyle = '#ffe066'; rr(x - 8, y + 8, 16, 4, 2); ctx.fill();
   const dome = ctx.createRadialGradient(x - 6, y - 18, 4, x, y - 12, 26);
   dome.addColorStop(0, 'rgba(255,255,255,0.9)'); dome.addColorStop(0.4, 'rgba(200,107,255,0.7)'); dome.addColorStop(1, 'rgba(90,30,120,0.8)');
@@ -2707,7 +2948,6 @@ function drawClones() {
     ctx.globalAlpha = 1;
   }
 }
-
 function drawProjs() {
   for (const p of projs) {
     ctx.shadowColor = p.g; ctx.shadowBlur = 18;
@@ -2716,7 +2956,6 @@ function drawProjs() {
     ctx.shadowBlur = 0;
   }
 }
-
 function drawEProjs() {
   for (const p of eprojs) {
     ctx.shadowColor = p.g; ctx.shadowBlur = 14;
@@ -2725,7 +2964,6 @@ function drawEProjs() {
     ctx.shadowBlur = 0;
   }
 }
-
 function drawParts() {
   for (const p of parts) {
     ctx.globalAlpha = Math.max(0, p.life / p.max);
@@ -2734,7 +2972,6 @@ function drawParts() {
   }
   ctx.globalAlpha = 1;
 }
-
 function drawTexts() {
   ctx.textAlign = 'center';
   for (const t of texts) {
@@ -2746,7 +2983,6 @@ function drawTexts() {
   }
   ctx.globalAlpha = 1;
 }
-
 function drawShop() {
   const x = SHOP_POS.x, y = SHOP_POS.y;
   ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.beginPath(); ctx.ellipse(x, y + 36, 62, 12, 0, 0, Math.PI * 2); ctx.fill();
@@ -2778,37 +3014,19 @@ function drawShop() {
 }
 
 function drawVignette() {
-  const w = VW(), h = VH();
+  const w = innerWidth, h = innerHeight;
   const v = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.35, w / 2, h / 2, Math.max(w, h) * 0.75);
   v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,0.45)');
   ctx.fillStyle = v; ctx.fillRect(0, 0, w, h);
 }
 
+// Canvas HUD: quest tracker, skill bar (PC), prompts, duel card, notice
 function drawHUD() {
   if (!me.name) return;
-  const k = clamp(Math.min(VW() / 900, VH() / 600), 0.6, 1);
+  const k = clamp(Math.min(innerWidth / 900, innerHeight / 600), 0.6, 1);
   ctx.save(); ctx.scale(k, k);
-  const F = FRUITS[me.fruit], S = SWORDS[me.sword] || SWORDS.wood, w = VW() / k, h = VH() / k;
+  const F = FRUITS[me.fruit], w = innerWidth / k, h = innerHeight / k;
   ctx.textAlign = 'left';
-
-  // Player box (top-left)
-  ctx.fillStyle = 'rgba(8,14,28,0.72)'; rr(10, 10, 290, 160, 12); ctx.fill();
-  ctx.fillStyle = '#fff'; ctx.font = 'bold 17px Arial'; ctx.fillText(me.name, 24, 36);
-  const maxed = me.level >= MAX_LEVEL;
-  ctx.fillStyle = '#ffd34d'; ctx.font = 'bold 14px Arial';
-  ctx.fillText('Lv ' + me.level + (maxed ? ' MAX' : ''), 200, 36);
-  ctx.fillStyle = '#2b2b2b'; rr(24, 46, 266, 14, 7); ctx.fill();
-  const hpPct = clamp(me.hp / me.maxHp, 0, 1);
-  if (hpPct > 0.01) { ctx.fillStyle = '#2ecc71'; rr(24, 46, 266 * hpPct, 14, 7); ctx.fill(); }
-  ctx.fillStyle = '#2b2b2b'; rr(24, 68, 266, 8, 4); ctx.fill();
-  const xpPct = maxed ? 1 : clamp(me.xp / xpNeeded(me.level), 0, 1);
-  if (xpPct > 0.01) { ctx.fillStyle = '#f1c40f'; rr(24, 68, 266 * xpPct, 8, 4); ctx.fill(); }
-  ctx.font = '13px Arial'; ctx.fillStyle = '#fff';
-  ctx.fillText('Beli: ' + fmt(me.beli), 24, 98);
-  const z = zoneAt(me.x, me.y);
-  ctx.fillText('Zone: ' + (inSafe(me.x, me.y) ? 'Safe Zone' : z ? ZONES[z].name : 'Open Sea'), 24, 116);
-  ctx.fillStyle = F.g; ctx.fillText('Fruit: ' + F.n + (isTouch ? '' : '  (T: change)'), 24, 134);
-  ctx.fillStyle = S.b; ctx.fillText('Sword: ' + S.n + '  (x' + S.dmg + ' damage)' + (S.ab ? '  [R] ' + (me.swCd > 0 ? Math.ceil(me.swCd) + 's' : 'ready') : ''), 24, 152);
 
   // Quest tracker (top-right)
   if (me.q < QUESTS.length) {
@@ -2816,14 +3034,13 @@ function drawHUD() {
     ctx.fillStyle = 'rgba(8,14,28,0.72)'; rr(w - 300, 10, 290, 58, 12); ctx.fill();
     ctx.fillStyle = '#ffe066'; ctx.font = 'bold 14px Arial'; ctx.fillText(Q.t, w - 288, 32);
     ctx.fillStyle = '#fff'; ctx.font = '12px Arial';
-    const sub = me.qs === 'idle' ? (isTouch ? 'Talk to Elder Rowan (Quest button)' : 'Talk to Elder Rowan (press Q)')
+    const sub = me.qs === 'idle' ? (isTouch ? 'Menu > Quest to talk to Elder Rowan' : 'Talk to Elder Rowan (press Q)')
       : me.qs === 'active' ? 'Defeated ' + me.qp + ' / ' + Q.need
-      : (isTouch ? 'Complete! Tap Quest to claim' : 'Complete! Press Q to claim');
+      : (isTouch ? 'Complete! Menu > Quest to claim' : 'Complete! Press Q to claim');
     ctx.fillText(sub, w - 288, 53);
   }
-  if (isAdmin) { ctx.textAlign = 'right'; ctx.fillStyle = '#ffc04d'; ctx.font = '13px Arial'; ctx.fillText('ADMIN (F2)', w - 14, 86); }
 
-  // Skill bar (PC only; touch devices use the on-screen buttons)
+  // Skill bar (PC only)
   if (!isTouch) {
     const slots = [{ l: 'M1', n: 'Combo', cd: me.combo.cd, max: 0.5, c: F.c }];
     F.sk.forEach(s => slots.push({ l: s.k.toUpperCase(), n: s.n, cd: me.cds[s.k] || 0, max: s.cd, c: F.c }));
@@ -2844,16 +3061,34 @@ function drawHUD() {
   // Proximity prompts
   ctx.textAlign = 'center'; ctx.fillStyle = '#ffe066'; ctx.font = 'bold 16px Arial';
   const yP = h - 100;
-  if (dist(me.x, me.y, SHOP_POS.x, SHOP_POS.y) < 120) ctx.fillText(isTouch ? 'Tap Shop to open the Grand Bazaar' : 'Press E to open the Grand Bazaar', w / 2, yP);
-  else if (dist(me.x, me.y, QUEST_POS.x, QUEST_POS.y) < 140 && !questOpen) ctx.fillText(isTouch ? 'Tap Quest to talk to Elder Rowan' : 'Press Q to talk to Elder Rowan', w / 2, yP);
-  else if (dist(me.x, me.y, GACHA_POS.x, GACHA_POS.y) < 140 && !gachaOpen) ctx.fillText(isTouch ? 'Tap Gacha to roll the Fruit Gacha' : 'Press G to roll the Fruit Gacha', w / 2, yP);
-  else if (dist(me.x, me.y, STORE_POS.x, STORE_POS.y) < 140 && !stockOpen) ctx.fillText(isTouch ? "Tap Stock to view the Stock Keeper's stock" : "Press Y to view the Stock Keeper's stock", w / 2, yP);
+  if (dist(me.x, me.y, SHOP_POS.x, SHOP_POS.y) < 120 && !shopOpen) ctx.fillText(isTouch ? 'Menu > Shop to open the Grand Bazaar' : 'Press E to open the Grand Bazaar', w / 2, yP);
+  else if (dist(me.x, me.y, QUEST_POS.x, QUEST_POS.y) < 140 && !questOpen) ctx.fillText(isTouch ? 'Menu > Quest to talk to Elder Rowan' : 'Press Q to talk to Elder Rowan', w / 2, yP);
+  else if (dist(me.x, me.y, GACHA_POS.x, GACHA_POS.y) < 140 && !gachaOpen) ctx.fillText(isTouch ? 'Menu > Gacha to roll the Fruit Gacha' : 'Press G to roll the Fruit Gacha', w / 2, yP);
+  else if (dist(me.x, me.y, STORE_POS.x, STORE_POS.y) < 140 && !stockOpen) ctx.fillText(isTouch ? 'Menu > Stock to view the stock' : 'Press Y to view the Stock Keeper\'s stock', w / 2, yP);
 
+  // Duel card (top-centre)
   if (activeDuel && activeDuel.start) {
+    const o = remote[activeDuel.opp];
     const left = Math.max(0, Math.ceil((DUEL_TIME - (Date.now() - activeDuel.start)) / 1000));
-    ctx.textAlign = 'center'; ctx.font = 'bold 18px Arial'; ctx.fillStyle = '#ff6b6b';
-    ctx.fillText('DUEL vs ' + activeDuel.opp + '  ' + left + 's', w / 2, 100);
+    const mPct = clamp(me.hp / me.maxHp, 0, 1);
+    const oPct = o ? clamp(o.hp / (o.maxHp || 1), 0, 1) : 0;
+    const bw = Math.min(380, w - 40), bx = w / 2 - bw / 2, by = 96;
+    ctx.fillStyle = 'rgba(30,6,12,0.85)'; rr(bx, by, bw, 66, 12); ctx.fill();
+    ctx.strokeStyle = '#ff5a5a'; ctx.lineWidth = 2; rr(bx, by, bw, 66, 12); ctx.stroke();
+    ctx.font = 'bold 13px Arial'; ctx.fillStyle = '#fff';
+    ctx.textAlign = 'left'; ctx.fillText(me.name, bx + 12, by + 18);
+    ctx.textAlign = 'right'; ctx.fillText(activeDuel.opp, bx + bw - 12, by + 18);
+    ctx.textAlign = 'center'; ctx.fillStyle = '#ff8a8a'; ctx.font = 'bold 16px Arial';
+    ctx.fillText('DUEL  ' + left + 's', w / 2, by + 18);
+    const half = bw / 2 - 18;
+    ctx.fillStyle = '#2b2b2b'; rr(bx + 12, by + 30, half, 10, 5); ctx.fill();
+    ctx.fillStyle = '#2ecc71'; rr(bx + 12, by + 30, half * mPct, 10, 5); ctx.fill();
+    ctx.fillStyle = '#2b2b2b'; rr(bx + bw - 12 - half, by + 30, half, 10, 5); ctx.fill();
+    ctx.fillStyle = '#e74c3c'; rr(bx + bw - 12 - half + half * (1 - oPct), by + 30, half * oPct, 10, 5); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.font = '11px Arial'; ctx.textAlign = 'center';
+    ctx.fillText('Last one standing wins', w / 2, by + 56);
   }
+
   if (noticeT > 0) {
     ctx.textAlign = 'center'; ctx.font = 'bold 20px Arial';
     const nw = ctx.measureText(notice).width + 30;
@@ -2866,12 +3101,11 @@ function drawHUD() {
 
 function draw() {
   const sx = (Math.random() - 0.5) * shake * 2, sy = (Math.random() - 0.5) * shake * 2;
-  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, VW(), VH());
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, innerWidth, innerHeight);
   ctx.save();
   ctx.translate(-cam.x + sx, -cam.y + sy);
-  ctx.drawImage(bg, 0, 0, W, H);
+  ctx.drawImage(bgCanvas, 0, 0, W, H);
 
-  // Animated surf line around each island
   const pulse = 0.5 + 0.5 * Math.sin(time * 2);
   ctx.strokeStyle = 'rgba(255,255,255,' + (0.25 + 0.25 * pulse) + ')'; ctx.lineWidth = 8;
   for (const I of ISLANDS) { blobPath(ctx, I, 1.08 + 0.02 * pulse); ctx.stroke(); }
@@ -2898,56 +3132,10 @@ function draw() {
   drawHUD();
 }
 
-// ================= TOUCH CONTROLS =================
-function setupJoy(el, side) {
-  const st = joy[side], knob = el.querySelector('.knob'), R = 60;
-  const place = t => {
-    const r = el.getBoundingClientRect();
-    const dx = t.clientX - (r.left + r.width / 2), dy = t.clientY - (r.top + r.height / 2);
-    const d = Math.hypot(dx, dy) || 1, m = Math.min(d, R);
-    st.x = dx / d * m / R; st.y = dy / d * m / R;
-    knob.style.transform = `translate(${dx / d * m}px, ${dy / d * m}px)`;
-  };
-  el.addEventListener('touchstart', e => {
-    e.preventDefault();
-    if (st.id !== null) return;
-    const t = e.changedTouches[0]; st.id = t.identifier; st.on = true; place(t);
-  }, { passive: false });
-  el.addEventListener('touchmove', e => {
-    e.preventDefault();
-    for (const t of e.changedTouches) if (t.identifier === st.id) place(t);
-  }, { passive: false });
-  const end = e => {
-    for (const t of e.changedTouches) if (t.identifier === st.id) {
-      st.id = null; st.on = false; st.x = 0; st.y = 0; knob.style.transform = '';
-    }
-  };
-  el.addEventListener('touchend', end);
-  el.addEventListener('touchcancel', end);
-}
-setupJoy(document.getElementById('joyL'), 'L');
-setupJoy(document.getElementById('joyR'), 'R');
-
-// Skill buttons and menu buttons send their key on tap
-document.querySelectorAll('#touchUI [data-k]').forEach(b => {
-  b.addEventListener('pointerdown', e => { e.preventDefault(); pressed.add(b.dataset.k); });
-});
-
-function syncTouchUI() {
-  if (!isTouch) return;
-  document.querySelectorAll('#touchUI .tb[data-k]').forEach(b => {
-    const k = b.dataset.k;
-    const cd = k === 'v' ? (me.tfT > 0 ? 0 : me.tfCd) : k === 'r' ? (me.swCd || 0) : (me.cds[k] || 0);
-    const s = b.querySelector('.cd');
-    s.textContent = cd > 0 ? cd.toFixed(1) : '';
-    s.style.visibility = cd > 0 ? 'visible' : 'hidden';
-  });
-}
-
-// Stop pinch-zoom and page bounce, but let panels and chat scroll
+// ================= GLOBAL TOUCH GUARDS =================
 document.addEventListener('gesturestart', e => e.preventDefault());
 document.addEventListener('touchmove', e => {
-  if (!e.target.closest || !e.target.closest('.panel,#admin,#chatBox')) e.preventDefault();
+  if (!e.target.closest || !e.target.closest('.panel,#admin,#chatLog,#menuGrid,#pvList')) e.preventDefault();
 }, { passive: false });
 
 // ================= LOOP =================
@@ -2957,18 +3145,20 @@ function loop(now) {
   last = now;
   update(dt);
   draw();
-  syncTouchUI();
   pushPresence();
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
 
+// ================= CHAT + MISC WIRING =================
 const chatIn = document.getElementById('chatIn');
 chatIn.addEventListener('keydown', e => {
-  if (e.key === 'Enter') { e.preventDefault(); sendChat(chatIn.value); closeChat(); }
-  else if (e.key === 'Escape') closeChat();
+  if (e.key === 'Enter') { e.preventDefault(); sendChat(chatIn.value); chatIn.value = ''; }
+  else if (e.key === 'Escape') toggleChat(false);
 });
+document.getElementById('chatTog').onclick = () => toggleChat();
 document.getElementById('adCmdIn').addEventListener('keydown', e => { if (e.key === 'Enter') runConsole(); });
+
 window.addEventListener('storage', e => {
   if (e.key === 'ol_chat') renderChat();
   if (e.key === 'ol_reports' || e.key === 'ol_bans') renderAdminLists();
@@ -2976,12 +3166,15 @@ window.addEventListener('storage', e => {
 });
 setInterval(() => { checkKick(); applyPendingGrants(); }, 1000);
 setInterval(() => {
+  if (!me.name) return;
   updateGachaTimer();
   if (gachaOpen && !me.gachaPending && (gachaLeft() === 0) !== gachaReadyFlag) renderGacha();
   if (stockOpen) {
     const sig = currentStock(Date.now()).map(x => x.k + x.win).join(',');
     if (sig !== stockSig) renderStock(); else updateStockTimers();
   }
+  if (pvpOpen) renderPvp();
+  if (chatOpen) renderChat();
 }, 1000);
 </script>
 </body>
