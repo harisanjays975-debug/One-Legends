@@ -1,0 +1,2988 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>ONE Legends</title>
+<link id="favicon" rel="icon" href="logo.png">
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:Arial,sans-serif;user-select:none;-webkit-user-select:none;touch-action:none;overscroll-behavior:none}
+#c{position:fixed;inset:0;display:block;cursor:crosshair;width:100%;height:100%;touch-action:none}
+.panel,#admin{touch-action:pan-y}
+
+#login{position:fixed;inset:0;z-index:10;color:#fff;background:radial-gradient(circle at 50% 30%,#1d4d7a,#061a2e 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:20px;box-sizing:border-box}
+#login h1{font-size:52px;margin:0;text-shadow:0 4px 20px #000;letter-spacing:2px;text-align:center}
+#login input{padding:11px;font-size:16px;border-radius:8px;border:none;width:260px;max-width:80vw;text-align:center}
+button{padding:11px 28px;font-size:16px;border:none;border-radius:8px;cursor:pointer;font-weight:bold;background:linear-gradient(#ffc04d,#f5a623);box-shadow:0 4px 14px rgba(245,166,35,.5)}
+#loginErr{color:#ff8a8a;min-height:18px;margin:0;font-size:14px;text-align:center}
+.hint{font-size:12px;opacity:.6;margin:0;text-align:center}
+#logo{width:min(300px,70vw);height:auto;aspect-ratio:1/1;object-fit:cover;border-radius:50%;margin:0;box-shadow:0 0 30px rgba(0,200,255,.7)}
+
+/* ---------- Panels (shop + quest) ---------- */
+.panel{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(780px,94vw);max-height:86vh;display:none;flex-direction:column;background:linear-gradient(180deg,#14284a,#0a1830);color:#f3ead2;border-radius:16px;border:1px solid #d9a441;box-shadow:0 24px 60px rgba(0,0,0,.6);overflow:hidden;z-index:5;font-family:Arial,sans-serif;max-height:86dvh}
+#quest.panel{width:min(440px,92vw)}
+.sh-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 20px;background:linear-gradient(100deg,#7a2418,#b8731c 60%,#d9a441);border-bottom:1px solid #d9a441}
+.sh-head h3{margin:0;font-family:Georgia,'Times New Roman',serif;font-size:22px;color:#fff6dc;letter-spacing:.5px;text-shadow:0 2px 8px rgba(0,0,0,.4)}
+.sh-head p{margin:4px 0 0;font-size:13px;color:#ffe9b8}
+.sh-x{background:rgba(0,0,0,.25);color:#fff;box-shadow:none;width:34px;height:34px;padding:0;font-size:22px;line-height:1;border-radius:50%;flex-shrink:0}
+.sh-tabs{display:flex;gap:8px;padding:14px 20px 0}
+.sh-tab{flex:1;background:rgba(255,255,255,.06);color:#bcd0e6;border:1px solid rgba(255,255,255,.12);box-shadow:none;padding:10px;font-size:14px;border-radius:10px}
+.sh-tab.on{background:linear-gradient(#ffd166,#e0a030);color:#1d1408;border-color:#ffd166;font-weight:bold}
+.sh-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;padding:16px 20px;overflow:auto;-webkit-overflow-scrolling:touch}
+.sh-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.sh-band{height:56px}
+.sh-body{padding:12px 14px;flex:1}
+.sh-body h4{margin:0 0 6px;font-size:15px;color:#fff6dc}
+.sh-body small{display:block;font-size:12px;color:#9fb4cc;line-height:1.6}
+.sh-body small b{color:#ffd166}
+.sh-stat{font-size:12px;color:#ffd166;margin-top:8px}
+.sh-btn{margin:0 14px 14px;padding:9px;font-size:13px;box-shadow:none;border-radius:9px;background:linear-gradient(#ffd166,#e0a030);color:#1d1408}
+.sh-btn.on{background:linear-gradient(#5be38a,#2ecc71);color:#06220f}
+.sh-btn:disabled{background:rgba(255,255,255,.08);color:#7f90a6;cursor:not-allowed}
+.sh-foot{margin:0;padding:10px 20px 14px;font-size:12px;color:#7f97b3;text-align:center;border-top:1px solid rgba(255,255,255,.08)}
+.q-body{padding:20px}
+.q-card h4{margin:6px 0;font-family:Georgia,serif;font-size:21px;color:#fff6dc}
+.q-card p{margin:6px 0;font-size:14px;line-height:1.5;color:#d8e3f0}
+.q-step{font-size:12px !important;color:#9fb4cc !important}
+.q-rw{color:#ffd166 !important}
+.q-bar{height:10px;border-radius:6px;background:rgba(255,255,255,.1);overflow:hidden;margin-top:12px}
+.q-bar div{height:100%;background:linear-gradient(90deg,#f5a623,#ffd166)}
+.q-card .sh-btn{width:100%;margin:16px 0 0;padding:12px;font-size:15px}
+
+/* ---------- Admin ---------- */
+#admin{position:fixed;right:16px;top:16px;width:270px;z-index:8;display:none;background:rgba(15,20,35,.95);color:#fff;padding:14px;border-radius:12px;border:1px solid #f5a623;font-size:13px;max-height:90vh;overflow:auto;-webkit-overflow-scrolling:touch}
+#admin h3{margin:0 0 8px;color:#ffc04d}
+#admin label{display:block;margin-top:8px;opacity:.8}
+#admin input,#admin select{width:100%;box-sizing:border-box;padding:7px;border-radius:6px;border:none;margin-top:4px;font-size:16px}
+#admin .row{display:flex;gap:6px;margin-top:6px}
+#admin .row input,#admin .row select{flex:1;margin:0}
+#admin button{padding:7px 10px;font-size:13px;box-shadow:none}
+#adMsg{min-height:18px;color:#9be7a0;margin:8px 0 0;font-size:12px}
+#chatBox{position:fixed;left:10px;bottom:10px;width:340px;z-index:6;font-size:13px;font-family:Arial,sans-serif}
+#chatLog{background:rgba(8,14,28,.6);color:#fff;border-radius:10px;padding:8px 10px;min-height:20px;max-height:200px;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;gap:3px;pointer-events:none}
+#chatIn{display:none;width:100%;box-sizing:border-box;padding:8px;border-radius:8px;border:none;margin-top:6px;font-size:16px}
+.rar{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:bold;color:#111;margin:0 0 4px;text-transform:capitalize}
+.list{max-height:140px;overflow:auto;margin-top:4px;font-size:12px}
+.listrow{display:flex;gap:4px;align-items:center;margin:4px 0;padding:4px;background:rgba(255,255,255,.05);border-radius:6px}
+.listrow span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.listrow button{padding:3px 6px;font-size:11px;box-shadow:none}
+.fr-band{height:96px;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle,#1d3a63,#0a1830)}
+.sh-card small{white-space:pre-line}
+.panel > .sh-grid, .panel > .q-body{flex:1 1 auto;min-height:0;overflow:auto}
+.panel > .fr-list{flex:1 1 auto;min-height:0;overflow:auto}
+.fr-list{display:flex;flex-direction:column;gap:10px;padding:14px 20px;overflow:auto;-webkit-overflow-scrolling:touch}
+.fr-row{flex:0 0 auto;display:flex;align-items:center;gap:12px;padding:10px 12px;min-height:76px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:pointer}
+.fr-row:hover{background:rgba(255,255,255,.14)}
+.fr-row .fr-info{flex:1;min-width:0}
+.fr-row h4{margin:0 0 3px;font-size:15px;color:#fff6dc}
+.fr-row small{display:block;font-size:12px;color:#9fb4cc;white-space:pre-line}
+.fr-row .sh-btn{margin:0;flex:0 0 auto;padding:8px 12px}
+#fruitBtn{position:fixed;left:10px;top:200px;z-index:6;padding:12px 16px;font-size:14px;border-radius:10px}
+
+/* ---------- Touch UI ---------- */
+#touchUI{position:fixed;inset:0;z-index:4;pointer-events:none;display:none;touch-action:none}
+body.touch #touchUI{display:block}
+.joy{position:absolute;bottom:max(18px,env(safe-area-inset-bottom));width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.35);pointer-events:auto;touch-action:none}
+#joyL{left:max(18px,env(safe-area-inset-left))}
+#joyR{right:max(18px,env(safe-area-inset-right))}
+.knob{position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;background:rgba(255,220,120,.6);border:2px solid #fff3c8}
+
+/* Skill grid: 3 columns x 2 rows, right of the right joystick */
+#skills{position:absolute;right:165px;bottom:max(18px,env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(3,64px);gap:10px;pointer-events:auto}
+.tb{position:relative;width:64px;height:64px;border-radius:50%;padding:0;font-size:18px;font-weight:bold;color:#1d1408;background:linear-gradient(#ffd166,#e0a030);box-shadow:0 3px 10px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;touch-action:none}
+.tb .cd{position:absolute;inset:0;border-radius:50%;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;font-size:14px;color:#ffe066;visibility:hidden}
+
+/* Menu: top-left, under the player box, away from the joystick */
+#menuT{position:absolute;top:180px;left:10px;width:260px;display:flex;flex-wrap:wrap;gap:6px;pointer-events:auto}
+.mb{padding:6px 10px;font-size:12px;font-weight:normal;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(8,14,28,.75);color:#fff;box-shadow:none}
+
+#rot{display:none;position:fixed;top:0;left:0;right:0;z-index:9;background:rgba(0,0,0,.75);color:#ffe066;text-align:center;padding:8px;font-size:13px;pointer-events:none}
+@media (orientation:portrait) and (pointer:coarse){#rot{display:block}}
+body.touch #fruitBtn{display:none}
+
+/* Chat: top-right, under the quest tracker */
+body.touch #chatBox{top:80px;bottom:auto;left:auto;right:10px;width:min(260px,40vw)}
+body.touch #chatLog{max-height:90px}
+@media (max-width:820px){#admin{left:50%;right:auto;top:50%;transform:translate(-50%,-50%);width:min(320px,92vw);max-height:80vh}}
+</style>
+</head>
+<body>
+
+<div id="login">
+  <img id="logo" src="logo.png" alt="ONE Legends">
+  <h1>ONE Legends</h1>
+  <input id="name" placeholder="Username" maxlength="14" autocomplete="off" autocapitalize="off">
+  <input id="passkey" type="password" placeholder="Passkey">
+  <p id="loginErr"></p>
+  <button id="start">Start Adventure</button>
+  <p class="hint">New username and passkey = new account</p>
+</div>
+
+<div id="shop" class="panel">
+  <div class="sh-head">
+    <div><h3>The Grand Bazaar</h3><p id="shopBeli"></p></div>
+    <button class="sh-x" onclick="toggleShop(false)">&times;</button>
+  </div>
+  <div class="sh-tabs">
+    <button class="sh-tab on" data-tab="fruit">Devil Fruits</button>
+    <button class="sh-tab" data-tab="sword">Sword Dealer</button>
+  </div>
+  <div id="shopList" class="sh-grid"></div>
+  <p class="sh-foot">Press E to close</p>
+</div>
+
+<div id="quest" class="panel">
+  <div class="sh-head">
+    <div><h3>Elder Rowan</h3><p>Quest giver of Harbor Isle</p></div>
+    <button class="sh-x" onclick="toggleQuest(false)">&times;</button>
+  </div>
+  <div id="qBody" class="q-body"></div>
+</div>
+
+<div id="gacha" class="panel">
+  <div class="sh-head">
+    <div><h3>Fruit Gacha</h3><p id="gachaInfo"></p></div>
+    <button class="sh-x" onclick="toggleGacha(false)">&times;</button>
+  </div>
+  <div id="gachaBody" class="q-body"></div>
+</div>
+
+<div id="stock" class="panel">
+  <div class="sh-head">
+    <div><h3>Stock Keeper</h3><p id="stockInfo"></p></div>
+    <button class="sh-x" onclick="toggleStock(false)">&times;</button>
+  </div>
+  <div id="stockBody" class="fr-list"></div>
+  <p class="sh-foot" id="stockFoot"></p>
+</div>
+
+<div id="store" class="panel">
+  <div class="sh-head">
+    <div><h3>Your Fruit Vault</h3><p id="storeInfo"></p></div>
+    <button class="sh-x" onclick="toggleStore(false)">&times;</button>
+  </div>
+  <div id="storeBody" class="fr-list"></div>
+  <p class="sh-foot">Tap a fruit to equip it. Your current fruit is lost unless you store it first. Buy and roll fruits at the Fruit Gacha.</p>
+</div>
+<button id="fruitBtn" onclick="toggleStore()">Change fruit (T)</button>
+
+<div id="admin">
+  <h3>Admin Panel <span style="font-size:11px;opacity:.6;color:#fff">(F2 to hide)</span></h3>
+  <label>Player name (blank = you)</label>
+  <input id="adTarget" list="names" placeholder="player name" autocomplete="off">
+  <datalist id="names"></datalist>
+  <label>Set level</label>
+  <div class="row"><input id="adLevel" type="number" placeholder="any number"><button onclick="adCmd('level','adLevel')">Set</button></div>
+  <label>Set Beli</label>
+  <div class="row"><input id="adBeli" type="number" placeholder="any number"><button onclick="adCmd('beli','adBeli')">Set</button></div>
+  <label>Give fruit</label>
+  <div class="row"><select id="adFruit"></select><button onclick="adCmd('fruit','adFruit')">Give</button></div>
+  <label>Give sword</label>
+  <div class="row"><select id="adSword"></select><button onclick="adCmd('sword','adSword')">Give</button></div>
+  <label>Command console (e.g. /ban name reason)</label>
+  <div class="row"><input id="adCmdIn" placeholder="/command ..." autocomplete="off"><button onclick="runConsole()">Run</button></div>
+  <p id="adMsg"></p>
+  <label>Reports</label>
+  <div id="repList" class="list"></div>
+  <label>Banned players</label>
+  <div id="banList" class="list"></div>
+</div>
+
+<button id="admBtnPC" onclick="toggleAdmin()" style="position:fixed;right:10px;top:70px;z-index:6;display:none;padding:8px 12px;font-size:13px">Admin (F2)</button>
+<div id="duelBox" style="position:fixed;top:40%;left:50%;transform:translate(-50%,-50%);z-index:12;display:none;background:#14284a;color:#fff;padding:18px 22px;border-radius:12px;border:1px solid #d9a441;text-align:center">
+  <p id="duelText" style="margin:0 0 12px"></p>
+  <button id="duelYes">Accept</button>
+  <button id="duelNo" style="margin-left:8px;background:#777;box-shadow:none;color:#fff">Decline</button>
+</div>
+<div id="chatBox">
+  <div id="chatLog"></div>
+  <input id="chatIn" maxlength="200" placeholder="Message (/ for commands, Esc to cancel)" autocomplete="off">
+</div>
+
+<canvas id="c"></canvas>
+
+<div id="rot">Rotate your phone to landscape for the best view</div>
+<div id="touchUI">
+  <div id="joyL" class="joy"><div class="knob"></div></div>
+  <div id="joyR" class="joy"><div class="knob"></div></div>
+  <div id="skills">
+    <button class="tb" data-k="f">F<span class="cd"></span></button>
+    <button class="tb" data-k="v">V<span class="cd"></span></button>
+    <button class="tb" data-k="r">R<span class="cd"></span></button>
+    <button class="tb" data-k="c">C<span class="cd"></span></button>
+    <button class="tb" data-k="x">X<span class="cd"></span></button>
+    <button class="tb" data-k="z">Z<span class="cd"></span></button>
+  </div>
+  <div id="menuT">
+    <button class="mb" data-k="e">Shop</button>
+    <button class="mb" data-k="q">Quest</button>
+    <button class="mb" data-k="g">Gacha</button>
+    <button class="mb" data-k="y">Stock</button>
+    <button class="mb" onclick="toggleStore()">Fruit</button>
+    <button class="mb" onclick="openChat()">Chat</button>
+    <button class="mb" id="admBtnT" onclick="toggleAdmin()" style="display:none">Admin</button>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+// Circular tab icon from the logo
+(function () {
+  const img = new Image();
+  img.onload = () => {
+    try {
+      const s = 64, cv = document.createElement('canvas'); cv.width = cv.height = s;
+      const g = cv.getContext('2d');
+      g.beginPath(); g.arc(s / 2, s / 2, s / 2, 0, Math.PI * 2); g.clip();
+      g.drawImage(img, 0, 0, s, s);
+      document.getElementById('favicon').href = cv.toDataURL('image/png');
+    } catch (e) { /* keep logo.png as the icon */ }
+  };
+  img.src = 'logo.png';
+})();
+
+// ================= ONLINE DATABASE (Firebase) =================
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDbjEp2IilP3D0Ew6_VcEbFA3PLxLF4fDs",
+  authDomain: "one-legends.firebaseapp.com",
+  databaseURL: "https://one-legends-default-rtdb.firebaseio.com",
+  projectId: "one-legends",
+  storageBucket: "one-legends.firebasestorage.app",
+  messagingSenderId: "383308612083",
+  appId: "1:383308612083:web:1517092c6072e74ac6d286",
+  measurementId: "G-P8K0WCM20F"
+};
+
+// Local cache so the game can read data instantly; every change is also written to Firebase
+const CACHE = {};
+let dbRef = null;
+const store = {
+  getItem(k) { return k in CACHE ? CACHE[k] : null; },
+  setItem(k, v) { CACHE[k] = String(v); if (dbRef) dbRef.child(k).set(String(v)); },
+  removeItem(k) { delete CACHE[k]; if (dbRef) dbRef.child(k).remove(); }
+};
+
+function onRemoteChange(snap) {
+  const v = snap.val();
+  if (v == null) delete CACHE[snap.key]; else CACHE[snap.key] = v;
+  if (snap.key === 'ol_chat') renderChat();
+  if (snap.key === 'ol_reports' || snap.key === 'ol_bans') renderAdminLists();
+  if (me.name && (snap.key === 'ol_kick_' + me.name || snap.key === 'ol_grants_' + me.name)) { checkKick(); applyPendingGrants(); }
+}
+
+function initDB() {
+  return new Promise(resolve => {
+    try {
+      firebase.initializeApp(FIREBASE_CONFIG);
+      dbRef = firebase.database().ref('kv');
+      dbRef.once('value').then(snap => {
+        const all = snap.val() || {};
+        for (const k in all) CACHE[k] = all[k];
+        dbRef.on('child_added', onRemoteChange);
+        dbRef.on('child_changed', onRemoteChange);
+        dbRef.on('child_removed', onRemoteChange);
+        resolve(true);
+      }).catch(() => { setLoginErr('Could not reach the server. Check your internet.'); resolve(false); });
+    } catch (e) {
+      setLoginErr('Could not connect to the server.');
+      resolve(false);
+    }
+  });
+}
+const dbReady = initDB();
+
+// ================= ONLINE PLAYERS + PVP DUELS =================
+const remote = {};            // other online players: name -> data
+let activeDuel = null;        // { id, opp, start, ending } for the local player
+let incomingDuel = null;      // duel request waiting for accept/decline
+let presenceRef = null, lastPresence = 0;
+let hitRef = null, hitListenId = null, seenHits = new Set();
+const DUEL_TIME = 60000;      // duels last 60 seconds
+
+function pairKey(a, b) { return [a, b].sort().join('__'); }
+
+function setupPresence() {
+  const db = firebase.database();
+  presenceRef = db.ref('players/' + me.name);
+  presenceRef.onDisconnect().remove();
+  db.ref('players').on('value', snap => {
+    const all = snap.val() || {};
+    for (const n in remote) if (!all[n]) delete remote[n];
+    for (const n in all) {
+      if (n === me.name) continue;
+      if (!remote[n]) remote[n] = Object.assign({ dx: all[n].x, dy: all[n].y }, all[n]);
+      else Object.assign(remote[n], all[n]);
+    }
+  });
+  db.ref('duels').on('value', snap => onDuels(snap.val() || {}));
+}
+
+function pushPresence() {
+  if (!presenceRef || !me.name) return;
+  const now = performance.now();
+  if (now - lastPresence < 120) return;
+  lastPresence = now;
+  presenceRef.set({ name: me.name, x: Math.round(me.x), y: Math.round(me.y), hp: Math.round(me.hp),
+    maxHp: me.maxHp, level: me.level, fruit: me.fruit, sword: me.sword, t: Date.now() });
+}
+
+function onDuels(all) {
+  if (!me.name) return;
+  incomingDuel = null;
+  for (const id in all) {
+    const d = all[id];
+    if (!d || (d.a !== me.name && d.b !== me.name)) continue;
+    const opp = d.a === me.name ? d.b : d.a;
+    if (d.status === 'pending' && d.b === me.name) {
+      incomingDuel = { id, opp };
+      showDuelBox(opp);
+    } else if (d.status === 'active') {
+      if (!activeDuel || activeDuel.id !== id) {
+        activeDuel = { id, opp, start: d.start };
+        msg('Duel started vs ' + opp + '!');
+      }
+      listenHits(id);
+    } else if (d.status === 'done' && activeDuel && activeDuel.id === id) {
+      msg(d.winner === me.name ? 'You won the duel!' : (d.winner || 'Nobody') + ' won the duel.');
+      if (hitRef) { hitRef.off(); hitRef = null; }
+      hitListenId = null;
+      activeDuel = null;
+    }
+  }
+  if (!incomingDuel) hideDuelBox();
+}
+
+function challengeDuel(opp) {
+  if (!remote[opp] || Date.now() - (remote[opp].t || 0) > 15000) return feedback(opp + ' is not online.');
+  if (activeDuel) return feedback('You are already in a duel.');
+  firebase.database().ref('duels/' + pairKey(me.name, opp))
+    .set({ a: me.name, b: opp, status: 'pending', start: 0, winner: '' });
+  feedback('Duel request sent to ' + opp + '.');
+}
+
+function acceptDuel() {
+  if (!incomingDuel) return;
+  firebase.database().ref('duels/' + pairKey(me.name, incomingDuel.opp))
+    .update({ status: 'active', start: Date.now() });
+  hideDuelBox();
+}
+
+function declineDuel() {
+  if (!incomingDuel) return;
+  firebase.database().ref('duels/' + pairKey(me.name, incomingDuel.opp)).remove();
+  incomingDuel = null;
+  hideDuelBox();
+}
+
+function endDuel(winner) {
+  if (!activeDuel) return;
+  const id = activeDuel.id;
+  firebase.database().ref('duels/' + id).update({ status: 'done', winner });
+  firebase.database().ref('duelhits/' + id).remove();
+}
+
+// Attacker writes a hit; the victim's own game applies the damage
+function pvpStrike(mult, range) {
+  if (!activeDuel || inSafe(me.x, me.y)) return;
+  const o = remote[activeDuel.opp];
+  if (!o || dist(me.x, me.y, o.x, o.y) > range) return;
+  if (inSafe(o.x, o.y)) return;
+  firebase.database().ref('duelhits/' + activeDuel.id).push({ to: activeDuel.opp, dmg: dmgFor(mult), by: me.name, ts: Date.now() });
+}
+
+function listenHits(id) {
+  if (hitListenId === id) return;
+  if (hitRef) hitRef.off();
+  hitListenId = id;
+  hitRef = firebase.database().ref('duelhits/' + id);
+  hitRef.once('value').then(s => {
+    seenHits = new Set(Object.keys(s.val() || {}));
+    hitRef.on('child_added', c => {
+      if (seenHits.has(c.key)) return;
+      seenHits.add(c.key);
+      const v = c.val();
+      if (v && v.to === me.name) takeHit(v.dmg, v.by);
+    });
+  });
+}
+
+function takeHit(dmg, by) {
+  if (!activeDuel || inSafe(me.x, me.y)) return;
+  me.hp -= dmg; me.flash = 0.25; addShake(4);
+  texts.push({ x: me.x, y: me.y - 40, t: '-' + dmg, life: 0.8, max: 0.8, color: '#ff4d4d' });
+  if (me.hp <= 0) {
+    me.hp = me.maxHp; me.x = SPAWN.x; me.y = SPAWN.y;
+    endDuel(by);
+  }
+}
+
+function showDuelBox(opp) {
+  document.getElementById('duelText').textContent = opp + ' challenges you to a 60-second duel. Accept?';
+  document.getElementById('duelBox').style.display = 'block';
+}
+function hideDuelBox() { document.getElementById('duelBox').style.display = 'none'; }
+document.getElementById('duelYes').onclick = acceptDuel;
+document.getElementById('duelNo').onclick = declineDuel;
+
+function drawRemotePlayers() {
+  for (const n in remote) {
+    const r = remote[n];
+    if (!r || Date.now() - (r.t || 0) > 15000) continue;
+    const px = r.dx ?? r.x, py = r.dy ?? r.y;
+    r.dx = px + (r.x - px) * 0.2;
+    r.dy = py + (r.y - py) * 0.2;
+    const moving = Math.hypot(r.x - r.dx, r.y - r.dy) > 1;
+    const F = FRUITS[r.fruit] || FRUITS.ember, S = SWORDS[r.sword] || SWORDS.wood;
+    drawHuman(r.dx, r.dy, { scale: 1, face: moving ? Math.atan2(r.y - r.dy, r.x - r.dx) : 0,
+      skin: '#f1c7a0', hair: '#2b1b10', shirt: F.c, pants: '#2c3e50',
+      walk: moving ? time * 8 : 0, busy: false, glow: F.g, sword: S, seed: 3 });
+    nameTag(r.dx, r.dy - 20, n + '  Lv ' + r.level, '#9fe3ff', (r.hp || 0) / (r.maxHp || 1), '#2ecc71');
+  }
+}
+
+// ================= CONFIG =================
+// Admin accounts. Anyone who can open this file can read this, so keep it private.
+const ADMIN_ACCOUNTS = { 'Hari_sanjay': '20112012hs' };
+const STORE_ACCOUNTS = 'ol_accounts';
+const saveKey = n => 'ol_save_' + n;
+const MAX_LEVEL = 300; // players stop gaining levels here; admin can set higher
+
+// ================= TOUCH =================
+const isTouch = matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0;
+if (isTouch) document.body.classList.add('touch');
+const joy = { L: { x: 0, y: 0, id: null, on: false }, R: { x: 0, y: 0, id: null, on: false } };
+const holdBtn = { m1: false };
+let touchAim = 0;
+
+// ================= WORLD DATA =================
+const W = 3000, H = 3000;
+const SHOP_POS = { x: 1500, y: 1500 }, SPAWN = { x: 1500, y: 1700 }, QUEST_POS = { x: 1640, y: 1620 };
+const ISLANDS = [
+  { z: 'frost',  x: 1500, y: 380,  rx: 1050, ry: 420, ground: 'snow' },
+  { z: 'harbor', x: 1250, y: 1650, rx: 950,  ry: 800, ground: 'grass' },
+  { z: 'dunes',  x: 2600, y: 1500, rx: 480,  ry: 900, ground: 'sand' },
+  { z: 'magma',  x: 380,  y: 2600, rx: 520,  ry: 430, ground: 'rock' }
+];
+// [top, bottom, speckle]
+const GROUND = { snow: ['#f4fbff', '#9fd0ea', '#ffffff'], grass: ['#8bd96f', '#2f7f3a', '#1f5f2a'],
+                 sand: ['#f8e7b0', '#c9a050', '#a07a32'], rock: ['#4a332d', '#1d100e', '#ff6a2a'] };
+
+// lvl: [min, max] level range for regular NPCs. boss.lv is the boss level.
+// boss.abil: abilities the boss cycles through (see bossCast)
+const ZONES = {
+  harbor: { name: 'Harbor Isle', color: '#c0392b', count: 12, lvl: [1, 12],
+    mob:  { name: 'Bandit', hp: 60, dmg: 6, beli: 10, xp: 20, look: 'bandit', scale: 1 },
+    boss: { name: 'Captain Blackhook', hp: 2200, dmg: 24, beli: 800, xp: 800, look: 'bandit', scale: 1.9, lv: 20,
+            pos: { x: 1000, y: 1400 }, abil: ['cannon', 'slam', 'burrow'] } },
+  dunes: { name: 'Sand Dunes', color: '#d4a017', count: 12, lvl: [12, 30],
+    mob:  { name: 'Desert Raider', hp: 220, dmg: 14, beli: 35, xp: 70, look: 'raider', scale: 1.05 },
+    boss: { name: 'Sand King', hp: 6000, dmg: 42, beli: 1500, xp: 1500, look: 'raider', scale: 2, lv: 35,
+            pos: { x: 2650, y: 1300 }, abil: ['sandstorm', 'burrow', 'cannon'] } },
+  frost: { name: 'Frost Peak', color: '#6ec6ff', count: 12, lvl: [28, 50],
+    mob:  { name: 'Ice Golem', hp: 500, dmg: 24, beli: 70, xp: 140, look: 'golem', scale: 1.35 },
+    boss: { name: 'Frost Titan', hp: 9000, dmg: 55, beli: 2500, xp: 2500, look: 'golem', scale: 2.3, lv: 55,
+            pos: { x: 1500, y: 330 }, abil: ['shards', 'blizzard', 'slam'] } },
+  magma: { name: 'Magma Isle', color: '#ff5a1f', count: 10, lvl: [48, 70],
+    mob:  { name: 'Lava Brute', hp: 900, dmg: 30, beli: 110, xp: 220, look: 'brute', scale: 1.15 },
+    boss: { name: 'Magma Warlord', hp: 14000, dmg: 70, beli: 4000, xp: 4000, look: 'brute', scale: 2.4, lv: 75,
+            pos: { x: 380, y: 2600 }, abil: ['lavapool', 'meteor', 'slam'] } }
+};
+const ABIL_NAME = { cannon: 'Cannon Shot', slam: 'Tidal Slam', sandstorm: 'Sandstorm', burrow: 'Burrow Strike',
+                    shards: 'Ice Shards', blizzard: 'Blizzard', lavapool: 'Lava Pools', meteor: 'Meteor Rain' };
+
+const PAL = {
+  bandit: { skin: '#e0a777', hair: '#2a1a10', shirt: '#7a2e2e', pants: '#3b3b4a', hat: 'bandana' },
+  raider: { skin: '#c58b5a', hair: '#111111', shirt: '#d4a017', pants: '#8b5a2b', hat: 'turban' },
+  golem:  { skin: '#d6f1ff', hair: '#ffffff', shirt: '#6ec6ff', pants: '#3e7ca8', hat: 'ice' },
+  brute:  { skin: '#8a4b2a', hair: '#1a0a05', shirt: '#8e2b12', pants: '#2a1a14', hat: 'none' }
+};
+
+// ================= NEW ISLANDS, BOSSES AND MOBS =================
+GROUND.jungle = ['#5fd46b', '#1d5a2a', '#0f3d1c'];
+GROUND.crystal = ['#f0e6ff', '#9b7fe0', '#ffffff'];
+GROUND.thunder = ['#fff9c4', '#8d8a2e', '#fff7a1'];
+ISLANDS.push(
+  { z: 'jade',    x: 280,  y: 1150, rx: 230, ry: 260, ground: 'jungle' },
+  { z: 'thunder', x: 1450, y: 2750, rx: 380, ry: 200, ground: 'thunder' },
+  { z: 'crystal', x: 2650, y: 2700, rx: 300, ry: 260, ground: 'crystal' }
+);
+Object.assign(ZONES, {
+  jade: { name: 'Jade Jungle', color: '#2ecc71', count: 8, lvl: [62, 80],
+    mob:  { name: 'Jungle Savage', hp: 1800, dmg: 70, beli: 400, xp: 900, look: 'jungle', scale: 1.1 },
+    boss: { name: 'Thorn Queen', hp: 30000, dmg: 90, beli: 8000, xp: 8000, look: 'jungle', scale: 2.2, lv: 85,
+            pos: { x: 280, y: 1150 }, r: 90, abil: ['vines', 'slam', 'burrow'] } },
+  thunder: { name: 'Thunder Peak', color: '#f1c40f', count: 8, lvl: [80, 95],
+    mob:  { name: 'Storm Raider', hp: 3500, dmg: 90, beli: 500, xp: 1100, look: 'thunder', scale: 1.1 },
+    boss: { name: 'Storm Lord Raijin', hp: 45000, dmg: 110, beli: 12000, xp: 12000, look: 'thunder', scale: 2.3, lv: 100,
+            pos: { x: 1450, y: 2750 }, r: 90, abil: ['thunder', 'slam', 'cannon'] } },
+  crystal: { name: 'Crystal Spire', color: '#b388ff', count: 8, lvl: [95, 120],
+    mob:  { name: 'Crystal Golem', hp: 5000, dmg: 110, beli: 650, xp: 1400, look: 'crystal', scale: 1.3 },
+    boss: { name: 'Crystal Empress', hp: 70000, dmg: 140, beli: 25000, xp: 25000, look: 'crystal', scale: 2.4, lv: 125,
+            pos: { x: 2650, y: 2700 }, r: 90, abil: ['shardrain', 'blizzard', 'thunder'] } }
+});
+Object.assign(ABIL_NAME, { vines: 'Thorn Vines', thunder: 'Thunder Strike', shardrain: 'Crystal Rain' });
+Object.assign(PAL, {
+  jungle:  { skin: '#b5774a', hair: '#0f2a12', shirt: '#2e7d32', pants: '#4e3b1e', hat: 'bandana' },
+  thunder: { skin: '#e8c39e', hair: '#f5e663', shirt: '#f1c40f', pants: '#3b3b4a', hat: 'none' },
+  crystal: { skin: '#f3e9ff', hair: '#b39ddb', shirt: '#9c6bff', pants: '#4a2f8a', hat: 'ice' }
+});
+
+// Extra boss abilities for the new bosses. Returns true when it handled the ability.
+function bossExtra(e, name, col, dmg) {
+  if (name === 'vines') {
+    for (let i = 0; i < 4; i++) {
+      const a = i * Math.PI / 2 + rand(0, 0.3);
+      eprojs.push({ x: e.x, y: e.y - 20 * e.scale, vx: Math.cos(a) * 260, vy: Math.sin(a) * 260, life: 2.2,
+        dmg: Math.round(dmg * 0.9), r: 14, c: '#3fbf5a', g: '#b8ffb0' });
+    }
+    return true;
+  }
+  if (name === 'thunder') {
+    for (let i = 0; i < 4; i++) {
+      hazards.push({ type: 'burst', x: me.x + rand(-160, 160), y: me.y + rand(-160, 160), r: 80,
+        t: 0.8 + i * 0.35, max: 1.6, dmg: Math.round(dmg * 1.2), c: '#f1c40f', g: '#fff7a1', hit: false });
+    }
+    return true;
+  }
+  if (name === 'shardrain') {
+    for (let i = 0; i < 6; i++) {
+      hazards.push({ type: 'burst', x: me.x + rand(-220, 220), y: me.y + rand(-220, 220), r: 70,
+        t: rand(0.6, 2), max: 2, dmg: Math.round(dmg), c: '#b388ff', g: '#e8d8ff', hit: false });
+    }
+    return true;
+  }
+  return false;
+}
+
+// m1: visual per hit. sh: ring|beam|dash|orb|wave|pull|heal. fx: slow|stun|burn
+const NOPA = { ls: 0, crit: 0, spd: 1, regen: 0, thorns: 0, beliM: 1, cdr: 0, dm: 1, d: 'No passive' };
+const PS = o => Object.assign({}, NOPA, o);
+
+const FRUITS = {
+  ember: { n: 'Ember Fruit', p: 0, lv: 1, c: '#ff6a00', g: '#ffc27a', m1: ['slash', 'slash', 'pierce'],
+    sk: [
+      { k: 'z', n: 'Fire Burst', cd: 4, r: 120, m: 2, sh: 'ring', fx: 'burn' },
+      { k: 'x', n: 'Fire Dash', cd: 6, r: 90, m: 1.8, sh: 'dash', d: 200 },
+      { k: 'c', n: 'Inferno', cd: 12, r: 220, m: 3.5, sh: 'orb', fx: 'burn' },
+      { k: 'f', n: 'Ember Armor', cd: 18, r: 60, sh: 'ring', ef: 'shield', h: 0.4, dur: 5 }],
+    tf: { n: 'Blaze Form', v: 'aura' }, pa: PS({ crit: 0.15, d: '15% crit chance' }) },
+  frost: { n: 'Frost Fruit', p: 2000, lv: 10, c: '#4fc3f7', g: '#d6f5ff', m1: ['pierce', 'pierce', 'claw'], m1fx: 'slow',
+    sk: [
+      { k: 'z', n: 'Frost Nova', cd: 4, r: 150, m: 1.8, sh: 'ring', fx: 'slow' },
+      { k: 'x', n: 'Ice Spear', cd: 5, r: 260, m: 2.5, sh: 'beam', fx: 'slow' },
+      { k: 'c', n: 'Glacier', cd: 14, r: 260, m: 4, sh: 'pull', fx: 'stun' },
+      { k: 'f', n: 'Frozen Field', cd: 16, r: 60, sh: 'ring', ef: 'zone', self: true, zr: 180, dur: 5, m: 1.2, slow: true }],
+    tf: { n: 'Glacial Form', v: 'aura' }, pa: PS({ regen: 4, d: 'Regenerate 4 HP per second' }) },
+  stretch: { n: 'Stretch Fruit', p: 5000, lv: 20, c: '#ff69b4', g: '#ffc2e0', rg: 1.4, m1: ['fist', 'fist', 'fist'],
+    sk: [
+      { k: 'z', n: 'Stretch Punch', cd: 3, r: 200, m: 2, sh: 'beam' },
+      { k: 'x', n: 'Rubber Whip', cd: 5, r: 170, m: 1.8, sh: 'wave' },
+      { k: 'c', n: 'Gum Slam', cd: 12, r: 210, m: 3.8, sh: 'ring', fx: 'stun' },
+      { k: 'f', n: 'Gear Second', cd: 20, r: 60, sh: 'ring', ef: 'buff', m: 1.5, dur: 6 }],
+    tf: { n: 'Gear Five', v: 'horns' }, pa: PS({ thorns: 0.3, d: 'Reflect 30% of damage taken' }) },
+  storm: { n: 'Storm Fruit', p: 8000, lv: 30, c: '#f1c40f', g: '#fff7a1', m1: ['bolt', 'bolt', 'bolt'],
+    sk: [
+      { k: 'z', n: 'Lightning', cd: 4, r: 240, m: 2.2, sh: 'beam', fx: 'stun' },
+      { k: 'x', n: 'Thunder Dash', cd: 6, r: 110, m: 1.8, sh: 'dash', d: 240 },
+      { k: 'c', n: 'Storm Call', cd: 14, r: 250, m: 3.4, sh: 'pull', fx: 'stun' },
+      { k: 'f', n: 'Chain Bolt', cd: 8, r: 160, sh: 'beam', ef: 'chain', j: 4, m: 1.6, fx: 'stun' }],
+    tf: { n: 'Thunder God', v: 'aura' }, pa: PS({ spd: 1.2, d: '20% faster movement' }) },
+  shadow: { n: 'Shadow Fruit', p: 12000, lv: 40, c: '#8e44ad', g: '#c39bd3', m1: ['claw', 'claw', 'slash'],
+    sk: [
+      { k: 'z', n: 'Shadow Step', cd: 4, r: 120, m: 1.8, sh: 'dash', d: 220 },
+      { k: 'x', n: 'Dark Orb', cd: 5, r: 260, m: 2.4, sh: 'orb' },
+      { k: 'c', n: 'Void Burst', cd: 14, r: 230, m: 3.8, sh: 'pull', fx: 'slow' },
+      { k: 'f', n: 'Shadow Clones', cd: 22, r: 60, sh: 'ring', ef: 'clone', dur: 6 }],
+    tf: { n: 'Shadow Lord', v: 'aura' }, pa: PS({ ls: 0.1, d: 'Heal 10% of damage dealt' }) },
+  magma: { n: 'Magma Fruit', p: 15000, lv: 45, c: '#ff4500', g: '#ffb26b', m1: ['fist', 'fist', 'slash'], m1fx: 'burn',
+    sk: [
+      { k: 'z', n: 'Magma Fist', cd: 4, r: 130, m: 2.1, sh: 'ring', fx: 'burn' },
+      { k: 'x', n: 'Lava Wave', cd: 6, r: 260, m: 2, sh: 'wave', fx: 'burn' },
+      { k: 'c', n: 'Eruption', cd: 14, r: 230, m: 3.6, sh: 'ring', fx: 'stun' },
+      { k: 'f', n: 'Lava Pool', cd: 14, r: 60, sh: 'ring', ef: 'zone', self: false, zr: 150, dur: 4, m: 1.5, fx: 'burn' }],
+    tf: { n: 'Magma Core', v: 'aura' }, pa: PS({ beliM: 1.3, d: '30% more Beli from kills' }) },
+  dragon: { n: 'Dragon Fruit', p: 25000, lv: 50, c: '#b3202e', g: '#ffb37a', m1: ['slash', 'pierce', 'claw'],
+    sk: [
+      { k: 'z', n: 'Dragon Breath', cd: 4, r: 280, m: 2.2, sh: 'wave', fx: 'burn' },
+      { k: 'x', n: 'Dragon Dive', cd: 6, r: 140, m: 2.2, sh: 'dash', d: 260, fx: 'stun' },
+      { k: 'c', n: 'Meteor Roar', cd: 14, r: 260, m: 4, sh: 'orb', fx: 'burn' },
+      { k: 'f', n: 'Meteor Rain', cd: 18, r: 200, sh: 'ring', ef: 'meteor', cnt: 5, m: 2.5 }],
+    tf: { n: 'Dragon Form', v: 'wings' }, pa: PS({ regen: 2, crit: 0.1, d: 'Regen 2 HP/s, 10% crit' }) },
+  kitsune: { n: 'Kitsune Fruit', p: 30000, lv: 60, c: '#ff9a2e', g: '#fff0c2', m1: ['claw', 'bolt', 'pierce'],
+    sk: [
+      { k: 'z', n: 'Foxfire', cd: 4, r: 200, m: 2.2, sh: 'orb', fx: 'burn' },
+      { k: 'x', n: 'Illusion Dash', cd: 5, r: 120, m: 1.8, sh: 'dash', d: 200 },
+      { k: 'c', n: 'Nine Tail Slam', cd: 12, r: 220, m: 3.6, sh: 'ring', fx: 'stun' },
+      { k: 'f', n: 'Fox Veil', cd: 18, r: 60, sh: 'ring', ef: 'shield', h: 0.25, dur: 8 }],
+    tf: { n: 'Nine Tails', v: 'tails' }, pa: PS({ crit: 0.2, spd: 1.1, d: '20% crit, 10% faster movement' }) },
+  control: { n: 'Control Fruit', p: 40000, lv: 70, c: '#2c3e50', g: '#7fb3ff', m1: ['pierce', 'fist', 'fist'],
+    sk: [
+      { k: 'z', n: 'Force Push', cd: 4, r: 180, m: 2, sh: 'ring' },
+      { k: 'x', n: 'Telekinesis', cd: 6, r: 300, m: 1.5, sh: 'pull', fx: 'slow' },
+      { k: 'c', n: 'Crush', cd: 14, r: 260, m: 4.4, sh: 'beam', fx: 'stun' },
+      { k: 'f', n: 'Gravity Well', cd: 14, r: 60, sh: 'pull', ef: 'zone', self: false, zr: 170, dur: 4, m: 1, pull: true }],
+    tf: { n: 'Conqueror', v: 'aura' }, pa: PS({ cdr: 0.15, d: '15% faster cooldowns' }) },
+  creation: { n: 'Creation Fruit', p: 50000, lv: 80, c: '#2ecc71', g: '#b8ffd1', m1: ['fist', 'slash', 'pierce'],
+    sk: [
+      { k: 'z', n: 'Mend', cd: 10, r: 60, sh: 'ring', ef: 'heal', h: 0.25 },
+      { k: 'x', n: 'Clay Spear', cd: 5, r: 280, m: 2.8, sh: 'beam', fx: 'slow' },
+      { k: 'c', n: 'Crystal Storm', cd: 14, r: 200, m: 3.2, sh: 'orb', fx: 'slow' },
+      { k: 'f', n: 'Crystal Shield', cd: 16, r: 60, sh: 'ring', ef: 'shield', h: 0.35, dur: 6 }],
+    tf: { n: 'Genesis', v: 'halo' }, pa: PS({ regen: 3, d: 'Regenerate 3 HP per second' }) },
+
+  gravity: { n: 'Gravity Fruit', p: 80000, lv: 85, c: '#5d6d7e', g: '#aab7b8', m1: ['fist', 'fist', 'slash'],
+    sk: [
+      { k: 'z', n: 'Gravity Pull', cd: 4, r: 220, m: 1.6, sh: 'pull', fx: 'slow' },
+      { k: 'x', n: 'Crushing Pressure', cd: 9, r: 60, sh: 'pull', ef: 'zone', self: false, zr: 150, dur: 3, m: 1.2, pull: true, slow: true },
+      { k: 'c', n: 'Gravity Quake', cd: 12, r: 200, m: 3, sh: 'ring', fx: 'stun' },
+      { k: 'f', n: 'Anti-Gravity Dash', cd: 7, r: 120, m: 2, sh: 'dash', d: 300 }],
+    tf: { n: 'Gravity Form', v: 'aura' }, pa: PS({ spd: 1.15, cdr: 0.1, d: '15% faster movement, 10% faster cooldowns' }) },
+  sound: { n: 'Sound Fruit', p: 150000, lv: 95, c: '#8e7cc3', g: '#d7c9ff', m1: ['bolt', 'bolt', 'pierce'],
+    sk: [
+      { k: 'z', n: 'Sonic Wave', cd: 4, r: 260, m: 2, sh: 'wave', fx: 'stun' },
+      { k: 'x', n: 'Echo Pulse', cd: 6, r: 150, m: 1.6, sh: 'ring', dot: 4 },
+      { k: 'c', n: 'Resonance Shock', cd: 12, r: 230, m: 2.5, sh: 'ring', dot: 6, fx: 'stun' },
+      { k: 'f', n: 'Deafening Roar', cd: 16, r: 260, m: 1.2, sh: 'ring', fx: 'stun' }],
+    tf: { n: 'Echo Form', v: 'aura' }, pa: PS({ crit: 0.2, d: '20% crit chance' }) },
+  light: { n: 'Light Fruit', p: 300000, lv: 105, c: '#ffe066', g: '#ffffff', m1: ['pierce', 'pierce', 'bolt'],
+    sk: [
+      { k: 'z', n: 'Laser', cd: 4, r: 300, m: 2.8, sh: 'beam' },
+      { k: 'x', n: 'Prism Split', cd: 6, r: 170, m: 1.8, sh: 'beam', ef: 'chain', j: 3 },
+      { k: 'c', n: 'Photon Burst', cd: 12, r: 220, m: 3.5, sh: 'orb' },
+      { k: 'f', n: 'Flash Step', cd: 8, r: 150, m: 1.8, sh: 'dash', d: 260 }],
+    tf: { n: 'Radiant Form', v: 'halo' }, pa: PS({ crit: 0.25, d: '25% crit chance' }) },
+  sand: { n: 'Sand Fruit', p: 500000, lv: 115, c: '#d9a441', g: '#f5e6a8', m1: ['fist', 'slash', 'fist'],
+    sk: [
+      { k: 'z', n: 'Sand Spike', cd: 4, r: 260, m: 2.4, sh: 'beam', fx: 'slow' },
+      { k: 'x', n: 'Sand Burial', cd: 10, r: 60, sh: 'ring', ef: 'zone', self: false, zr: 160, dur: 5, m: 1, slow: true },
+      { k: 'c', n: 'Dune Crush', cd: 12, r: 200, m: 3.2, sh: 'ring', fx: 'stun' },
+      { k: 'f', n: 'Dust Cloak', cd: 18, r: 60, sh: 'ring', ef: 'buff', m: 1.3, dur: 8 }],
+    tf: { n: 'Sandstorm Form', v: 'aura' }, pa: PS({ thorns: 0.25, d: 'Reflect 25% of damage taken' }) },
+  tremor: { n: 'Tremor Fruit', p: 800000, lv: 125, c: '#8d6e63', g: '#d7ccc8', m1: ['fist', 'fist', 'fist'],
+    sk: [
+      { k: 'z', n: 'Ground Pound', cd: 4, r: 140, m: 2.2, sh: 'ring', fx: 'stun' },
+      { k: 'x', n: 'Rock Spike', cd: 5, r: 280, m: 3, sh: 'beam' },
+      { k: 'c', n: 'Earthquake', cd: 14, r: 280, m: 3.8, sh: 'ring', fx: 'stun' },
+      { k: 'f', n: 'Stone Skin', cd: 16, r: 60, sh: 'ring', ef: 'shield', h: 0.3, dur: 7 }],
+    tf: { n: 'Stone Form', v: 'horns' }, pa: PS({ regen: 2, thorns: 0.15, d: 'Regen 2 HP/s, reflect 15% of damage' }) },
+  spirit: { n: 'Spirit Fruit', p: 1200000, lv: 135, c: '#7fd6c9', g: '#dffff8', m1: ['claw', 'claw', 'pierce'],
+    sk: [
+      { k: 'z', n: 'Spirit Drain', cd: 4, r: 260, m: 2, sh: 'beam', ls: 0.5 },
+      { k: 'x', n: 'Phantom Dash', cd: 5, r: 110, m: 1.6, sh: 'dash', d: 240 },
+      { k: 'c', n: 'Soul Harvest', cd: 12, r: 200, m: 2.6, sh: 'ring', ls: 0.4 },
+      { k: 'f', n: 'Ghost Form', cd: 20, r: 60, sh: 'ring', ef: 'buff', m: 1.5, dur: 5 }],
+    tf: { n: 'Spirit Form', v: 'halo' }, pa: PS({ ls: 0.05, spd: 1.05, d: 'Heal 5% of damage, 5% faster' }) },
+  venom: { n: 'Venom Fruit', p: 2000000, lv: 150, c: '#6aa84f', g: '#b6e3a0', m1: ['claw', 'claw', 'claw'],
+    sk: [
+      { k: 'z', n: 'Venom Spit', cd: 4, r: 240, m: 2, sh: 'beam', dot: 5 },
+      { k: 'x', n: 'Toxic Cloud', cd: 10, r: 60, sh: 'ring', ef: 'zone', self: false, zr: 170, dur: 5, m: 0.8, fx: 'slow' },
+      { k: 'c', n: 'Plague Burst', cd: 12, r: 220, m: 2.4, sh: 'ring', dot: 8 },
+      { k: 'f', n: 'Antidote', cd: 16, r: 60, sh: 'ring', ef: 'heal', h: 0.35 }],
+    tf: { n: 'Toxic Form', v: 'tails' }, pa: PS({ crit: 0.05, cdr: 0.05, d: '5% crit, 5% faster cooldowns' }) },
+  time: { n: 'Time Fruit', p: 3000000, lv: 165, c: '#b0c4de', g: '#ffffff', m1: ['slash', 'slash', 'fist'],
+    sk: [
+      { k: 'z', n: 'Time Stop', cd: 12, r: 60, sh: 'ring', ef: 'zone', self: true, zr: 230, dur: 4, m: 0.6, slow: true },
+      { k: 'x', n: 'Rewind', cd: 14, r: 60, sh: 'ring', ef: 'heal', h: 0.3 },
+      { k: 'c', n: 'Time Slash', cd: 14, r: 300, m: 3.5, sh: 'beam', fx: 'stun' },
+      { k: 'f', n: 'Haste Reset', cd: 30, r: 60, sh: 'ring', ef: 'reset' }],
+    tf: { n: 'Chrono Form', v: 'halo' }, pa: PS({ cdr: 0.2, d: '20% faster cooldowns' }) },
+  blood: { n: 'Blood Fruit', p: 5000000, lv: 180, c: '#8b0000', g: '#ff6b6b', m1: ['slash', 'claw', 'slash'],
+    sk: [
+      { k: 'z', n: 'Blood Lance', cd: 4, r: 280, m: 2.4, sh: 'beam', ls: 0.5 },
+      { k: 'x', n: 'Blood Pact', cd: 16, r: 60, sh: 'ring', ef: 'buff', m: 1.8, dur: 6, cost: 0.15 },
+      { k: 'c', n: 'Crimson Nova', cd: 12, r: 230, m: 2.8, sh: 'ring', ls: 0.4 },
+      { k: 'f', n: 'Hemorrhage', cd: 10, r: 170, m: 1, sh: 'ring', dot: 6, fx: 'slow' }],
+    tf: { n: 'Blood Form', v: 'horns' }, pa: PS({ ls: 0.12, crit: 0.1, d: 'Heal 12% of damage, 10% crit' }) },
+  mirror: { n: 'Mirror Fruit', p: 8000000, lv: 195, c: '#cfd8dc', g: '#ffffff', m1: ['pierce', 'pierce', 'bolt'],
+    sk: [
+      { k: 'z', n: 'Mirror Shot', cd: 4, r: 260, m: 2.2, sh: 'orb' },
+      { k: 'x', n: 'Clone Army', cd: 22, r: 60, sh: 'ring', ef: 'clone', dur: 8 },
+      { k: 'c', n: 'Shatter', cd: 12, r: 60, m: 1.6, sh: 'ring', ef: 'nova' },
+      { k: 'f', n: 'Mirror Shield', cd: 18, r: 60, sh: 'ring', ef: 'shield', h: 0.3, dur: 6 }],
+    tf: { n: 'Mirror Form', v: 'halo' }, pa: PS({ thorns: 0.5, d: 'Reflect 50% of damage taken' }) },
+  phoenix: { n: 'Phoenix Fruit', p: 12000000, lv: 215, c: '#ff7f11', g: '#ffd166', m1: ['slash', 'slash', 'fist'],
+    sk: [
+      { k: 'z', n: 'Flame Rebirth', cd: 12, r: 160, m: 1.6, sh: 'ring', ef: 'heal', h: 0.3, fx: 'burn' },
+      { k: 'x', n: 'Phoenix Dive', cd: 6, r: 150, m: 2.4, sh: 'dash', d: 320, fx: 'burn' },
+      { k: 'c', n: 'Solar Flare', cd: 14, r: 200, m: 3.8, sh: 'orb', fx: 'burn' },
+      { k: 'f', n: 'Eternal Flame', cd: 26, r: 60, sh: 'ring', ef: 'buff', m: 1.6, dur: 8 }],
+    tf: { n: 'Phoenix Form', v: 'wings' }, pa: PS({ regen: 5, ls: 0.05, d: 'Regen 5 HP/s, heal 5% of damage' }) },
+  cosmic: { n: 'Cosmic Fruit', p: 20000000, lv: 240, c: '#7b5cff', g: '#e0d4ff', m1: ['bolt', 'pierce', 'bolt'],
+    sk: [
+      { k: 'z', n: 'Star Shower', cd: 10, r: 260, m: 2, sh: 'ring', ef: 'meteor', cnt: 7 },
+      { k: 'x', n: 'Nebula Pull', cd: 12, r: 60, sh: 'pull', ef: 'zone', self: true, zr: 260, dur: 3, m: 0.8, pull: true },
+      { k: 'c', n: 'Supernova', cd: 14, r: 300, m: 5, sh: 'ring', fx: 'stun' },
+      { k: 'f', n: 'Cosmic Ward', cd: 20, r: 60, sh: 'ring', ef: 'shield', h: 0.4, dur: 8 }],
+    tf: { n: 'Cosmos Form', v: 'aura' }, pa: PS({ beliM: 1.5, crit: 0.15, d: '50% more Beli, 15% crit' }) }
+};
+
+// ================= SAFE ZONE + HELPERS =================
+const SAFE = { x: 1500, y: 1600, r: 330 };
+function inSafe(x, y) { return dist(x, y, SAFE.x, SAFE.y) < SAFE.r; }
+function healMe(v) { me.hp = Math.min(me.maxHp, me.hp + v); }
+function pasv() { return FRUITS[me.fruit].pa; }
+function applyDot(e, dur, dm) { e.dotT = dur; e.dotDps = dm * 0.4; }
+FRUITS.admin = { n: 'Admin Fruit', p: 0, lv: 1, c: '#ffd700', g: '#fff5b0', m1: ['star', 'star', 'star'], m1fx: 'stun', adminOnly: true,
+  sk: [
+    { k: 'z', n: 'Void Lance', cd: 2, r: 420, m: 6, sh: 'beam', dot: 8, fx: 'stun' },
+    { k: 'x', n: 'Judgment', cd: 6, r: 450, m: 4, sh: 'ring', ef: 'judgment' },
+    { k: 'c', n: 'Singularity', cd: 10, r: 60, sh: 'pull', ef: 'zone', self: true, zr: 320, dur: 6, m: 1.5, pull: true },
+    { k: 'f', n: 'Divine Ward', cd: 14, r: 60, sh: 'ring', ef: 'shield', h: 0.8, dur: 12 }],
+  tf: { n: 'Absolute Form', v: 'wings' },
+  pa: PS({ ls: 0.25, spd: 1.3, crit: 0.3, cdr: 0.3, regen: 10, dm: 3, d: 'Triple damage, 30% crit, 25% lifesteal, 30% faster cooldowns, 10 HP/s regen' }) };
+Object.assign(FRUITS, {
+  tide: { n: 'Tide Fruit', p: 0, lv: 1, c: '#2e86de', g: '#9ddcff', m1: ['slash', 'slash', 'pierce'],
+    sk: [
+      { k: 'z', n: 'Water Pulse', cd: 4, r: 130, m: 1.9, sh: 'ring', fx: 'slow' },
+      { k: 'x', n: 'Wave Dash', cd: 6, r: 100, m: 1.7, sh: 'dash', d: 210 },
+      { k: 'c', n: 'Tidal Wave', cd: 12, r: 230, m: 3.3, sh: 'wave', fx: 'stun' },
+      { k: 'f', n: 'Water Shield', cd: 18, r: 60, sh: 'ring', ef: 'shield', h: 0.35, dur: 6 }],
+    tf: { n: 'Tidal Form', v: 'aura' }, pa: PS({ regen: 2, d: 'Regenerate 2 HP per second' }) },
+  sprout: { n: 'Sprout Fruit', p: 0, lv: 1, c: '#4caf50', g: '#c8f7c5', m1: ['claw', 'claw', 'slash'],
+    sk: [
+      { k: 'z', n: 'Vine Lash', cd: 4, r: 200, m: 2, sh: 'beam' },
+      { k: 'x', n: 'Leaf Dash', cd: 5, r: 100, m: 1.7, sh: 'dash', d: 180 },
+      { k: 'c', n: 'Thorn Burst', cd: 12, r: 200, m: 3, sh: 'ring', fx: 'slow' },
+      { k: 'f', n: 'Growth Mend', cd: 12, r: 60, sh: 'ring', ef: 'heal', h: 0.25 }],
+    tf: { n: 'Bloom Form', v: 'halo' }, pa: PS({ regen: 3, d: 'Regenerate 3 HP per second' }) },
+  eclipse: { n: 'Eclipse Fruit', p: 0, lv: 1, c: '#2d1b4e', g: '#b39ddb', m1: ['pierce', 'pierce', 'bolt'],
+    sk: [
+      { k: 'z', n: 'Shadow Eclipse', cd: 4, r: 220, m: 2.8, sh: 'ring', fx: 'stun' },
+      { k: 'x', n: 'Dark Pull', cd: 6, r: 260, m: 1.5, sh: 'pull', fx: 'slow' },
+      { k: 'c', n: 'Solar Burst', cd: 12, r: 220, m: 3.6, sh: 'orb' },
+      { k: 'f', n: 'Eclipse Veil', cd: 18, r: 60, sh: 'ring', ef: 'shield', h: 0.35, dur: 8 }],
+    tf: { n: 'Eclipse Form', v: 'wings' }, pa: PS({ ls: 0.08, crit: 0.1, d: '8% lifesteal, 10% crit' }) }
+});
+const FRUIT_RAR = { ember: 'common', frost: 'common', stretch: 'common', sand: 'common',
+  storm: 'uncommon', shadow: 'uncommon', sound: 'uncommon',
+  magma: 'rare', light: 'rare', tremor: 'rare', gravity: 'rare',
+  dragon: 'legendary', kitsune: 'legendary', spirit: 'legendary', venom: 'legendary', mirror: 'legendary',
+  control: 'mythical', time: 'mythical', blood: 'mythical',
+  phoenix: 'celestial', cosmic: 'celestial', creation: 'celestial', admin: 'admin', tide: 'common', sprout: 'common', eclipse: 'mythical' };
+for (const k in FRUIT_RAR) FRUITS[k].rar = FRUIT_RAR[k];
+const FRUIT_KEYS = Object.keys(FRUITS);
+
+// Swords: dmg multiplies your damage. b = blade colour, e = edge colour, len = blade length
+const SWORDS = {
+  wood:    { n: 'Wooden Blade', p: 0,       lv: 1,   dmg: 1,    b: '#c89b5a', e: '#8b5a2b', len: 30 },
+  cutlass: { n: 'Cutlass',      p: 3000,    lv: 10,  dmg: 1.25, b: '#d7dee8', e: '#7d93aa', len: 34 },
+  katana:  { n: 'Katana',       p: 25000,   lv: 35,  dmg: 1.6,  b: '#eef3f8', e: '#5f7f9e', len: 40 },
+  shusui:  { n: 'Shusui',       p: 150000,  lv: 80,  dmg: 2.2,  b: '#c8ffe6', e: '#2ecc71', len: 42 },
+  yoru:    { n: 'Yoru',         p: 600000,  lv: 140, dmg: 3,    b: '#3a3a52', e: '#8e44ad', len: 44 },
+  enma:    { n: 'Enma',         p: 2500000, lv: 200, dmg: 4,    b: '#ffb36b', e: '#b3202e', len: 46 }
+};
+SWORDS.sovereign = { n: 'Sovereign Blade', p: 0, lv: 1, dmg: 5, b: '#fff3b0', e: '#1a1a1a', len: 50, adminOnly: true, ab: 'dominion', abCd: 25 };
+const SWORD_RAR = { wood: 'common', cutlass: 'uncommon', katana: 'rare', shusui: 'legendary', yoru: 'mythical', enma: 'celestial', sovereign: 'admin' };
+for (const k in SWORD_RAR) SWORDS[k].rar = SWORD_RAR[k];
+const RAR_COL = { common: '#b0b7c3', uncommon: '#5be38a', rare: '#4fc3f7', legendary: '#ffb020', mythical: '#c86bff', celestial: '#ff5d8f', admin: '#ffd700' };
+function rarBadge(r) { return '<span class="rar" style="background:' + (RAR_COL[r] || '#999') + '">' + (r || 'common') + '</span>'; }
+const SWORD_KEYS = Object.keys(SWORDS);
+
+// Quests run in order. lv = level needed to accept. kind: zone + boss flag.
+const QUESTS = [
+  { t: 'Clear the Harbor',   d: 'Defeat 10 Bandits on Harbor Isle.',         lv: 1,  zone: 'harbor', boss: false, need: 10, rw: { beli: 800,    xp: 300 } },
+  { t: 'Captain Blackhook',  d: 'Defeat Captain Blackhook, the pirate boss.', lv: 10, zone: 'harbor', boss: true,  need: 1,  rw: { beli: 3000,   xp: 1000,  sword: 'cutlass' } },
+  { t: 'Desert Trouble',     d: 'Defeat 15 Desert Raiders in the dunes.',    lv: 15, zone: 'dunes',  boss: false, need: 15, rw: { beli: 6000,   xp: 2000 } },
+  { t: 'The Sand King',      d: 'Defeat the Sand King.',                     lv: 25, zone: 'dunes',  boss: true,  need: 1,  rw: { beli: 15000,  xp: 5000,  sword: 'katana' } },
+  { t: 'Frozen Hunt',        d: 'Defeat 20 Ice Golems on Frost Peak.',       lv: 30, zone: 'frost',  boss: false, need: 20, rw: { beli: 25000,  xp: 8000 } },
+  { t: 'Frost Titan',        d: 'Defeat the Frost Titan.',                   lv: 40, zone: 'frost',  boss: true,  need: 1,  rw: { beli: 60000,  xp: 15000, sword: 'shusui' } },
+  { t: 'Lava Purge',         d: 'Defeat 25 Lava Brutes on Magma Isle.',      lv: 50, zone: 'magma',  boss: false, need: 25, rw: { beli: 120000, xp: 30000 } },
+  { t: 'Magma Warlord',      d: 'Defeat the Magma Warlord.',                 lv: 60, zone: 'magma',  boss: true,  need: 1,  rw: { beli: 300000, xp: 60000, sword: 'yoru' } },
+  { t: 'Jungle Hunt',  d: 'Defeat 25 Jungle Savages on Jade Jungle.', lv: 62, zone: 'jade', boss: false, need: 25, rw: { beli: 500000, xp: 90000 } },
+  { t: 'Thorn Queen',  d: 'Defeat the Thorn Queen.', lv: 70, zone: 'jade', boss: true, need: 1, rw: { beli: 900000, xp: 150000 } },
+  { t: 'Storm Raid',   d: 'Defeat 25 Storm Raiders on Thunder Peak.', lv: 80, zone: 'thunder', boss: false, need: 25, rw: { beli: 1500000, xp: 250000 } },
+  { t: 'Storm Lord',   d: 'Defeat Storm Lord Raijin.', lv: 90, zone: 'thunder', boss: true, need: 1, rw: { beli: 2500000, xp: 400000 } },
+  { t: 'Crystal Hunt', d: 'Defeat 25 Crystal Golems on Crystal Spire.', lv: 100, zone: 'crystal', boss: false, need: 25, rw: { beli: 3000000, xp: 500000 } },
+  { t: 'Crystal Empress', d: 'Defeat the Crystal Empress.', lv: 110, zone: 'crystal', boss: true, need: 1, rw: { beli: 6000000, xp: 800000 } }
+];
+
+// ================= HELPERS =================
+const rand = (a, b) => a + Math.random() * (b - a);
+const dist = (ax, ay, bx, by) => Math.hypot(ax - bx, ay - by);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const hasOwn = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+const fmt = n => Math.round(n).toLocaleString('en-US');
+const maxHpFor = lvl => 100 + (lvl - 1) * 20;
+const xpNeeded = lvl => lvl * 100;
+const nearHub = (x, y) => inSafe(x, y) || dist(x, y, SHOP_POS.x, SHOP_POS.y) < 200 || dist(x, y, QUEST_POS.x, QUEST_POS.y) < 200;
+
+function zoneAt(x, y) {
+  let best = null, bd = Infinity;
+  for (const I of ISLANDS) {
+    const d = Math.hypot((x - I.x) / I.rx, (y - I.y) / I.ry);
+    if (d < bd) { bd = d; best = I; }
+  }
+  return bd <= 1.02 ? best.z : null;
+}
+
+function hashPass(p) {
+  let h1 = 2166136261, h2 = 5381;
+  for (let i = 0; i < p.length; i++) {
+    const c = p.charCodeAt(i);
+    h1 = Math.imul(h1 ^ c, 16777619);
+    h2 = (Math.imul(h2, 33) + c) | 0;
+  }
+  return (h1 >>> 0).toString(36) + '_' + (h2 >>> 0).toString(36);
+}
+
+function shade(hex, amt) {
+  const n = parseInt(hex.slice(1), 16);
+  const r = clamp((n >> 16) + amt, 0, 255), g = clamp(((n >> 8) & 255) + amt, 0, 255), b = clamp((n & 255) + amt, 0, 255);
+  return '#' + ((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1);
+}
+
+function loadAccounts() { try { return JSON.parse(store.getItem(STORE_ACCOUNTS)) || {}; } catch (e) { return {}; } }
+function saveAccounts(a) { store.setItem(STORE_ACCOUNTS, JSON.stringify(a)); }
+function getSave(n) { try { return JSON.parse(store.getItem(saveKey(n))); } catch (e) { return null; } }
+function putSave(n, d) { store.setItem(saveKey(n), JSON.stringify(d)); }
+
+// ================= WORLD BUILD (pre-rendered once) =================
+function blobPath(c, I, k) {
+  c.beginPath();
+  for (let i = 0; i <= 48; i++) {
+    const a = i / 48 * Math.PI * 2;
+    const r = 1 + 0.08 * Math.sin(a * 3 + I.x) + 0.05 * Math.sin(a * 7 + I.y);
+    const x = I.x + Math.cos(a) * I.rx * r * k, y = I.y + Math.sin(a) * I.ry * r * k;
+    if (i) c.lineTo(x, y); else c.moveTo(x, y);
+  }
+  c.closePath();
+}
+
+const bg = document.createElement('canvas');
+bg.width = W * 0.5; bg.height = H * 0.5;
+(function buildBG() {
+  const c = bg.getContext('2d');
+  c.setTransform(0.5, 0, 0, 0.5, 0, 0);
+  const og = c.createLinearGradient(0, 0, 0, H);
+  og.addColorStop(0, '#3bb3e0'); og.addColorStop(0.5, '#1479ad'); og.addColorStop(1, '#06334f');
+  c.fillStyle = og; c.fillRect(0, 0, W, H);
+  for (let i = 0; i < 90; i++) {
+    c.fillStyle = 'rgba(0,30,60,' + rand(0.03, 0.08) + ')';
+    c.beginPath(); c.ellipse(rand(0, W), rand(0, H), rand(90, 300), rand(50, 140), rand(0, 3), 0, Math.PI * 2); c.fill();
+  }
+  for (const I of ISLANDS) {
+    const G = GROUND[I.ground], rock = I.ground === 'rock';
+    for (let k = 0; k < 4; k++) {
+      c.fillStyle = rock ? 'rgba(255,110,40,' + (0.16 - 0.03 * k) + ')' : 'rgba(200,245,255,' + (0.2 - 0.04 * k) + ')';
+      blobPath(c, I, 1.12 + 0.06 * k); c.fill();
+    }
+    c.fillStyle = rock ? '#ffb36b' : '#f5ecd0';
+    blobPath(c, I, 1.02); c.fill();
+    const gg = c.createLinearGradient(0, I.y - I.ry, 0, I.y + I.ry);
+    gg.addColorStop(0, G[0]); gg.addColorStop(1, G[1]);
+    c.fillStyle = gg; blobPath(c, I, 0.96); c.fill();
+    c.save(); blobPath(c, I, 0.96); c.clip();
+    for (let i = 0; i < I.rx * I.ry / 400; i++) {
+      c.fillStyle = G[2]; c.globalAlpha = rand(0.25, 0.6);
+      c.fillRect(I.x + rand(-I.rx, I.rx), I.y + rand(-I.ry, I.ry), rand(3, 9), rand(2, 5));
+    }
+    c.globalAlpha = 1;
+    if (rock) {
+      c.strokeStyle = 'rgba(255,120,40,0.7)'; c.lineWidth = 3;
+      for (let i = 0; i < 40; i++) {
+        const x = I.x + rand(-I.rx, I.rx), y = I.y + rand(-I.ry, I.ry);
+        c.beginPath(); c.moveTo(x, y); c.lineTo(x + rand(-40, 40), y + rand(-30, 30)); c.stroke();
+      }
+    }
+    c.restore();
+  }
+})();
+
+// ================= DECORATIONS =================
+const DECO_TYPE = { frost: 'pine', dunes: 'cactus', harbor: 'palm', magma: 'rock', jade: 'palm', thunder: 'pine', crystal: 'rock' };
+const deco = [];
+for (let i = 0; i < 260 && deco.length < 170; i++) {
+  const x = rand(40, W - 40), y = rand(40, H - 40), z = zoneAt(x, y);
+  if (!z || nearHub(x, y) || dist(x, y, SPAWN.x, SPAWN.y) < 90) continue;
+  deco.push({ x, y, t: DECO_TYPE[z], s: rand(0.85, 1.3) });
+}
+deco.sort((a, b) => a.y - b.y);
+
+// ================= STATE =================
+const cam = { x: 0, y: 0 };
+let time = 0, shake = 0, aim = 0, shopOpen = false, shopTab = 'fruit', questOpen = false;
+let isAdmin = false, notice = '', noticeT = 0;
+let enemies = [], projs = [], eprojs = [], hazards = [], clones = [], parts = [], effects = [], texts = [];
+const mouse = { x: innerWidth / 2, y: innerHeight / 2, down: false };
+const keys = {}, pressed = new Set();
+const me = {
+  name: '', x: SPAWN.x, y: SPAWN.y, hp: 100, maxHp: 100, level: 1, xp: 0, beli: 0,
+  fruit: 'ember', owned: ['ember'], sword: 'wood', swords: ['wood'],
+  q: 0, qp: 0, qs: 'idle', slowT: 0, shield: 0, shieldT: 0, buffT: 0, buffM: 1,
+  vault: [], gachaNext: 0, gachaPending: null, stockBought: {}, noCd: false,
+  facing: { x: 0, y: -1 }, cds: {},
+  combo: { step: 0, timer: 0, cd: 0 }, flash: 0, moving: false, walk: 0, tfT: 0, tfCd: 0
+};
+const VW = () => innerWidth, VH = () => innerHeight;
+
+function msg(t) { notice = t; noticeT = 3; }
+function addShake(v) { shake = Math.max(shake, v); }
+function burst(x, y, color, n, speed, life) {
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * Math.PI * 2, v = speed * (0.4 + Math.random() * 0.8);
+    parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: life * (0.6 + Math.random() * 0.6), max: life, color, s: 2 + Math.random() * 3.5 });
+  }
+}
+function onScreen(x, y, pad) { return x > cam.x - pad && x < cam.x + VW() + pad && y > cam.y - pad && y < cam.y + VH() + pad; }
+
+// ================= ENEMIES =================
+// Regular NPCs get stats that grow with their level
+function scaledMob(m, lv) {
+  return {
+    hp: Math.round(m.hp * (1 + lv * 0.08)),
+    dmg: Math.round(m.dmg * (1 + lv * 0.04)),
+    beli: Math.round(m.beli * (1 + lv * 0.1)),
+    xp: Math.round(m.xp * (1 + lv * 0.1))
+  };
+}
+
+function makeEnemy(zone, boss, slot) {
+  const Z = ZONES[zone], m = boss ? Z.boss : Z.mob;
+  let x, y, lv, st;
+  if (boss) {
+    x = Z.boss.pos.x; y = Z.boss.pos.y; lv = Z.boss.lv;
+    st = { hp: Z.boss.hp, dmg: Z.boss.dmg, beli: Z.boss.beli, xp: Z.boss.xp };
+  } else {
+    const spot = SPOTS[zone][slot];
+    x = spot.x; y = spot.y;
+    lv = Math.floor(rand(Z.lvl[0], Z.lvl[1] + 1));
+    st = scaledMob(Z.mob, lv);
+  }
+  return { zone, boss: !!boss, lv, slot, x, y, hx: x, hy: y, hp: st.hp, maxHp: st.hp, dmg: st.dmg, beli: st.beli, xp: st.xp,
+    name: m.name, pal: PAL[m.look], scale: m.scale, dead: false, respawn: 0, atk: 0, slow: 0, stun: 0, burn: 0,
+    dotT: 0, dotDps: 0, kx: 0, ky: 0, flash: 0, walk: rand(0, 6), abT: 3, abI: 0 };
+}
+// Fixed spawn spots for regular NPCs: they always spawn and respawn at these points
+const SPOTS = {};
+(function buildSpots() {
+  for (const z of Object.keys(ZONES)) {
+    const cand = [];
+    for (let y = 60; y < H - 60; y += 110) {
+      for (let x = 60; x < W - 60; x += 110) {
+        if (zoneAt(x, y) === z && !nearHub(x, y) && dist(x, y, SAFE.x, SAFE.y) > 480 && dist(x, y, ZONES[z].boss.pos.x, ZONES[z].boss.pos.y) > (ZONES[z].boss.r || 380)) cand.push({ x, y });
+      }
+    }
+    const count = ZONES[z].count, stride = cand.length / count;
+    SPOTS[z] = [];
+    for (let i = 0; i < count; i++) SPOTS[z].push(cand[Math.floor(i * stride)]);
+  }
+})();
+function spawnAll() {
+  enemies = [];
+  for (const z of Object.keys(ZONES)) {
+    for (let i = 0; i < ZONES[z].count; i++) enemies.push(makeEnemy(z, false, i));
+    enemies.push(makeEnemy(z, true));
+  }
+}
+spawnAll();
+
+// ================= COMBAT =================
+function dmgFor(mult) {
+  const S = SWORDS[me.sword] || SWORDS.wood;
+  const crit = Math.random() < pasv().crit ? 2 : 1;
+  const bm = me.buffT > 0 ? me.buffM : 1;
+  return Math.round((10 + me.level * 5) * mult * S.dmg * bm * crit * pasv().dm * (me.tfT > 0 ? 1.8 : 1) * (0.9 + Math.random() * 0.2));
+}
+function nearest(x, y, r) {
+  let best = null, bd = r;
+  for (const e of enemies) {
+    if (e.dead) continue;
+    const d = dist(e.x, e.y, x, y);
+    if (d < bd) { bd = d; best = e; }
+  }
+  return best;
+}
+function gainXp(n) {
+  if (me.level >= MAX_LEVEL) { me.xp = 0; return; }
+  me.xp += n;
+  while (me.xp >= xpNeeded(me.level) && me.level < MAX_LEVEL) {
+    me.xp -= xpNeeded(me.level);
+    me.level++;
+    me.maxHp = maxHpFor(me.level);
+    me.hp = me.maxHp;
+    msg('Level up! You are now level ' + me.level);
+  }
+  if (me.level >= MAX_LEVEL) { me.xp = 0; if (n > 0) msg('You reached the max level!'); }
+}
+function hurt(e, d, fx, crit) {
+  if (e.dead) return;
+  e.hp -= d; e.flash = 0.12;
+  if (pasv().ls) healMe(d * pasv().ls);
+  if (fx === 'slow') e.slow = 2.5;
+  if (fx === 'stun') e.stun = e.boss ? 0.5 : 1;
+  if (fx === 'burn') e.burn = 3;
+  texts.push({ x: e.x, y: e.y - 40, t: fmt(d), life: 0.8, max: 0.8, color: crit ? '#ffe066' : '#fff', big: crit });
+  burst(e.x, e.y, crit ? '#ffe066' : '#fff', crit ? 16 : 8, 170, 0.45);
+  if (e.hp <= 0) kill(e);
+}
+function kill(e) {
+  e.dead = true; e.respawn = e.boss ? 90 : 8;
+  me.beli += Math.round(e.beli * pasv().beliM); gainXp(e.xp);
+  if (me.qs === 'active') {
+    const Q = QUESTS[me.q];
+    if (Q && Q.zone === e.zone && Q.boss === e.boss) {
+      me.qp = Math.min(Q.need, me.qp + 1);
+      if (me.qp >= Q.need) { me.qs = 'ready'; msg('Quest complete! Return to Elder Rowan'); }
+    }
+  }
+  burst(e.x, e.y, ZONES[e.zone].color, e.boss ? 60 : 26, e.boss ? 380 : 260, 0.9);
+  texts.push({ x: e.x, y: e.y - 60, t: '+' + fmt(e.beli) + ' Beli', life: 1.2, max: 1.2, color: '#f1c40f' });
+  if (e.boss) { msg(e.name + ' defeated!'); addShake(12); }
+}
+function hurtPlayer(d) {
+  if (inSafe(me.x, me.y)) return;
+  if (me.shieldT > 0 && me.shield > 0) {
+    const ab = Math.min(me.shield, d); me.shield -= ab; d -= ab;
+    texts.push({ x: me.x, y: me.y - 40, t: 'Blocked', life: 0.8, max: 0.8, color: '#9fe3ff' });
+    if (d <= 0) return;
+  }
+  if (pasv().thorns) { const t = nearest(me.x, me.y, 160); if (t) hurt(t, Math.round(d * pasv().thorns), null); }
+  me.hp -= d; me.flash = 0.25; addShake(4);
+  texts.push({ x: me.x, y: me.y - 40, t: '-' + d, life: 0.8, max: 0.8, color: '#ff4d4d' });
+  if (me.hp <= 0) {
+    const lost = Math.floor(me.beli * 0.1);
+    me.beli -= lost; me.hp = me.maxHp; me.x = SPAWN.x; me.y = SPAWN.y;
+    me.combo.step = 0; me.tfT = 0; me.slowT = 0;
+    msg('Defeated! You lost ' + fmt(lost) + ' Beli');
+    saveProgress();
+  }
+}
+
+// ================= BOSS ABILITIES =================
+// Called when a boss is close to the player. Telegraphed ones appear as hazards first.
+function bossCast(e) {
+  const Z = ZONES[e.zone], list = Z.boss.abil;
+  const name = list[e.abI % list.length];
+  e.abI++;
+  const col = Z.color, dmg = e.dmg;
+  msg(e.name + ': ' + ABIL_NAME[name] + '!');
+  if (bossExtra(e, name, col, dmg)) return;
+  if (name === 'cannon') {
+    const a = Math.atan2(me.y - e.y, me.x - e.x), sp = 380;
+    eprojs.push({ x: e.x, y: e.y - 20 * e.scale, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 2.5,
+      dmg: Math.round(dmg * 1.1), r: 16, c: col, g: '#ffd39a' });
+  } else if (name === 'slam') {
+    hazards.push({ type: 'burst', x: e.x, y: e.y, r: 170, t: 0.7, max: 0.7, dmg: Math.round(dmg * 1.4), c: col, g: '#ffffff', hit: false });
+  } else if (name === 'sandstorm') {
+    hazards.push({ type: 'pool', x: e.x, y: e.y, r: 230, t: 4, max: 4, dmg: Math.round(dmg * 0.25), tick: 0, slow: true, c: '#e2b65a', g: '#fff1c2' });
+  } else if (name === 'burrow') {
+    burst(e.x, e.y, col, 30, 260, 0.6);
+    const ang = rand(0, Math.PI * 2);
+    e.x = clamp(me.x + Math.cos(ang) * 60, 20, W - 20);
+    e.y = clamp(me.y + Math.sin(ang) * 60, 20, H - 20);
+    burst(e.x, e.y, col, 30, 260, 0.6);
+    hazards.push({ type: 'burst', x: e.x, y: e.y, r: 95, t: 1, max: 1, dmg: Math.round(dmg * 1.5), c: col, g: '#ffffff', hit: false });
+  } else if (name === 'shards') {
+    const base = Math.atan2(me.y - e.y, me.x - e.x);
+    for (let i = -2; i <= 2; i++) {
+      const a = base + i * 0.22;
+      eprojs.push({ x: e.x, y: e.y - 20 * e.scale, vx: Math.cos(a) * 300, vy: Math.sin(a) * 300, life: 2,
+        dmg: Math.round(dmg * 0.8), r: 12, c: '#bfefff', g: '#ffffff' });
+    }
+  } else if (name === 'blizzard') {
+    hazards.push({ type: 'pool', x: e.x, y: e.y, r: 200, t: 3.5, max: 3.5, dmg: Math.round(dmg * 0.35), tick: 0, slow: true, c: '#9fe3ff', g: '#ffffff' });
+  } else if (name === 'lavapool') {
+    for (let i = 0; i < 3; i++) {
+      hazards.push({ type: 'burst', x: me.x + rand(-130, 130), y: me.y + rand(-130, 130), r: 85,
+        t: 1.2 + i * 0.3, max: 1.5, dmg: Math.round(dmg * 1.2), c: col, g: '#ffb26b', hit: false });
+    }
+  } else if (name === 'meteor') {
+    for (let i = 0; i < 5; i++) {
+      hazards.push({ type: 'burst', x: me.x + rand(-180, 180), y: me.y + rand(-180, 180), r: 100,
+        t: rand(0.8, 2.2), max: 2.2, dmg: Math.round(dmg * 1.1), c: col, g: '#ffe0a0', hit: false });
+    }
+  }
+}
+
+// M1 combo: 3 hits, visual style and range set per fruit
+function basicAttack() {
+  const c = me.combo;
+  if (c.cd > 0 || inSafe(me.x, me.y)) return;
+  const idx = c.timer > 0 ? c.step : 0;
+  c.step = (idx + 1) % 3; c.timer = 0.8; c.cd = idx === 2 ? 0.5 : 0.22;
+  const F = FRUITS[me.fruit], mult = [1, 1.15, 1.6][idx];
+  const range = (idx === 2 ? 140 : 105) * (F.rg || 1), arc = idx === 2 ? Math.PI * 1.1 : Math.PI * 0.8;
+  effects.push({ t: 'm1', k: F.m1[idx], x: me.x, y: me.y, a: aim, arc, r: range, dir: idx % 2 ? -1 : 1,
+    big: idx === 2, life: 0.24, max: 0.24, c: F.c, g: F.g });
+  anim.m1 = { t: 0.24, max: 0.24, dir: idx % 2 ? -1 : 1, arc: arc };
+  pvpStrike(mult, range + 16);
+  let hitAny = false;
+  for (const e of enemies) {
+    if (e.dead || dist(e.x, e.y, me.x, me.y) > range + 16) continue;
+    let df = Math.atan2(e.y - me.y, e.x - me.x) - aim;
+    df = Math.atan2(Math.sin(df), Math.cos(df));
+    if (Math.abs(df) <= arc / 2 + 0.15) { hurt(e, dmgFor(mult), F.m1fx, idx === 2); hitAny = true; }
+  }
+  burst(me.x + Math.cos(aim) * 60, me.y + Math.sin(aim) * 60, F.g, idx === 2 ? 18 : 8, idx === 2 ? 220 : 120, 0.35);
+  if (idx === 2) addShake(hitAny ? 7 : 3); else if (hitAny) addShake(1.5);
+}
+
+function useSkill(i) {
+  const F = FRUITS[me.fruit], sk = F.sk[i];
+  if (!sk || me.cds[sk.k] > 0) return;
+  if (inSafe(me.x, me.y)) return msg('No fighting in the safe zone');
+  me.cds[sk.k] = sk.cd * (1 - pasv().cdr);
+  const fx = sk.fx, col = F.c, g = F.g;
+  if (sk.d) {
+    me.x = clamp(me.x + me.facing.x * sk.d, 20, W - 20);
+    me.y = clamp(me.y + me.facing.y * sk.d, 20, H - 20);
+    burst(me.x, me.y, g, 22, 170, 0.45);
+  }
+  effects.push({ t: 'sk', sh: sk.sh, x: me.x, y: me.y, r: sk.r || 100, a: aim, life: 0.45, max: 0.45, c: col, g });
+  anim.cast = { t: 0.45, max: 0.45, c: col, g };
+  pvpStrike(sk.m || 1.5, sk.r || 100);
+  burst(me.x, me.y, col, 12, 190, 0.4); addShake(2);
+
+  const ef = sk.ef;
+  if (ef === 'shield') {
+    me.shield = me.maxHp * sk.h; me.shieldT = sk.dur;
+    texts.push({ x: me.x, y: me.y - 40, t: '+SHIELD', life: 0.9, max: 0.9, color: '#9fe3ff' });
+    return;
+  }
+  if (ef === 'buff') {
+    me.buffT = sk.dur; me.buffM = sk.m;
+    if (sk.cost) me.hp = Math.max(1, me.hp - me.maxHp * sk.cost);
+    msg(sk.n + ' active!');
+    return;
+  }
+  if (ef === 'reset') {
+    for (const k of ['z', 'x', 'c', 'f']) me.cds[k] = 0;
+    msg('Cooldowns reset!');
+    return;
+  }
+  if (ef === 'clone') {
+    clones.push({ x: me.x - 40, y: me.y + 30, t: sk.dur, cd: 0.2, c: col, g });
+    clones.push({ x: me.x + 40, y: me.y + 30, t: sk.dur, cd: 0.5, c: col, g });
+    return;
+  }
+  if (ef === 'heal') {
+    healMe(me.maxHp * sk.h);
+    texts.push({ x: me.x, y: me.y - 40, t: '+HP', life: 0.9, max: 0.9, color: '#7dffb0' });
+    if (!sk.m) return;
+  }
+  if (ef === 'zone') {
+    const ahead = sk.self ? 0 : 200;
+    const zx = clamp(me.x + Math.cos(aim) * ahead, 20, W - 20), zy = clamp(me.y + Math.sin(aim) * ahead, 20, H - 20);
+    hazards.push({ type: 'pool', friendly: true, x: zx, y: zy, r: sk.zr, t: sk.dur, max: sk.dur,
+      dmg: Math.round(dmgFor(sk.m) * 0.4), tick: 0, slow: !!sk.slow, pull: !!sk.pull, c: col, g, fx });
+    return;
+  }
+  if (ef === 'meteor') {
+    for (let n = 0; n < sk.cnt; n++) {
+      hazards.push({ type: 'burst', friendly: true, x: clamp(me.x + rand(-sk.r, sk.r), 20, W - 20), y: clamp(me.y + rand(-sk.r, sk.r), 20, H - 20),
+        r: 90, t: rand(0.4, 1.4), max: 1.4, dmg: dmgFor(sk.m), c: col, g, fx, hit: false });
+    }
+    return;
+  }
+  if (ef === 'chain') {
+    let cur = nearest(me.x, me.y, sk.r);
+    if (!cur) return msg('No target in range');
+    const hitSet = new Set();
+    let from = { x: me.x, y: me.y };
+    for (let j = 0; j < sk.j && cur; j++) {
+      const dm = dmgFor(sk.m);
+      effects.push({ t: 'beam', x1: from.x, y1: from.y - 10, x2: cur.x, y2: cur.y - 10, life: 0.25, max: 0.25, c: col, g });
+      hurt(cur, dm, fx);
+      hitSet.add(cur); from = cur;
+      let nx = null, bd = 150;
+      for (const e of enemies) {
+        if (e.dead || hitSet.has(e)) continue;
+        const dd = dist(e.x, e.y, cur.x, cur.y);
+        if (dd < bd) { bd = dd; nx = e; }
+      }
+      cur = nx;
+    }
+    return;
+  }
+  if (ef === 'judgment') {
+    for (const e of enemies) {
+      if (e.dead || dist(e.x, e.y, me.x, me.y) > sk.r) continue;
+      hazards.push({ type: 'burst', friendly: true, x: e.x, y: e.y, r: 70, t: 0.5, max: 0.5, dmg: dmgFor(sk.m), c: col, g, fx, hit: false });
+    }
+    return;
+  }
+  if (ef === 'nova') {
+    for (let k = 0; k < 8; k++) {
+      const a = k * Math.PI / 4;
+      projs.push({ x: me.x, y: me.y, vx: Math.cos(a) * 420, vy: Math.sin(a) * 420, life: 0.9, m: sk.m, fx, c: col, g });
+    }
+    return;
+  }
+
+  if (sk.sh === 'orb') { projs.push({ x: me.x, y: me.y, vx: me.facing.x * 480, vy: me.facing.y * 480, life: 1.1, m: sk.m, fx, c: col, g }); return; }
+  if (sk.sh === 'beam') {
+    const t = nearest(me.x, me.y, sk.r);
+    if (!t) return;
+    effects.push({ t: 'beam', x1: me.x, y1: me.y - 10, x2: t.x, y2: t.y - 10, life: 0.25, max: 0.25, c: col, g });
+    const dm = dmgFor(sk.m);
+    hurt(t, dm, fx);
+    if (sk.ls) healMe(dm * sk.ls);
+    if (sk.dot) applyDot(t, sk.dot, dm);
+    return;
+  }
+  for (const e of enemies) {
+    if (e.dead) continue;
+    const dx = e.x - me.x, dy = e.y - me.y, d = Math.hypot(dx, dy) || 1;
+    if (sk.sh === 'wave') {
+      const p = dx * me.facing.x + dy * me.facing.y, q = -dx * me.facing.y + dy * me.facing.x;
+      if (p < 0 || p > sk.r || Math.abs(q) > 48) continue;
+    } else if (d > sk.r) continue;
+    const dm = dmgFor(sk.m);
+    hurt(e, dm, fx);
+    if (sk.ls) healMe(dm * sk.ls);
+    if (sk.dot) applyDot(e, sk.dot, dm);
+    if (sk.sh === 'pull') { e.kx = -dx / d * 300; e.ky = -dy / d * 300; }
+    else if (sk.sh !== 'wave') { e.kx = dx / d * 220; e.ky = dy / d * 220; }
+  }
+}
+
+function useSwordAbility() {
+  const S = SWORDS[me.sword];
+  if (!S || !S.ab) return msg('Your sword has no special ability');
+  if (me.swCd > 0) return msg('Ability ready in ' + Math.ceil(me.swCd) + 's');
+  if (inSafe(me.x, me.y)) return msg('No fighting in the safe zone');
+  me.swCd = S.abCd;
+  effects.push({ t: 'sk', sh: 'ring', x: me.x, y: me.y, r: 450, a: 0, life: 0.8, max: 0.8, c: S.e, g: S.b });
+  burst(me.x, me.y, S.b, 60, 380, 0.8); addShake(10);
+  for (const e of enemies) {
+    if (e.dead || dist(e.x, e.y, me.x, me.y) > 450) continue;
+    hurt(e, dmgFor(3), null);
+    if (!e.dead) e.stun = Math.max(e.stun, e.boss ? 1 : 2.5);
+  }
+  healMe(me.maxHp * 0.2);
+  msg('Dominion: nearby enemies are stunned!');
+}
+
+function toggleTF() {
+  const F = FRUITS[me.fruit];
+  if (me.tfT > 0 || me.tfCd > 0) return;
+  me.tfT = 12; me.tfCd = 35;
+  msg(F.tf.n + ' activated!');
+  burst(me.x, me.y, F.g, 40, 300, 0.7); addShake(6);
+}
+
+// ================= SAVE / LOAD =================
+function snapshot() {
+  return { level: me.level, xp: me.xp, beli: me.beli, fruit: me.fruit, owned: me.owned.slice(),
+    sword: me.sword, swords: me.swords.slice(), q: me.q, qp: me.qp, qs: me.qs, vault: me.vault.slice(), gachaNext: me.gachaNext, gachaPending: me.gachaPending, stockBought: me.stockBought, noCd: me.noCd, x: me.x, y: me.y };
+}
+function applySave(d) {
+  if (!d) return;
+  me.level = Math.max(1, Math.floor(Number(d.level)) || 1);
+  me.xp = Number(d.xp) || 0;
+  me.beli = Number(d.beli) || 0;
+  me.owned = Array.isArray(d.owned) ? d.owned.filter(k => FRUITS[k] && (isAdmin || !FRUITS[k].adminOnly)) : [];
+  if (!me.owned.includes('ember')) me.owned.unshift('ember');
+  me.fruit = FRUITS[d.fruit] && (isAdmin || !FRUITS[d.fruit].adminOnly) ? d.fruit : 'ember';
+  me.swords = Array.isArray(d.swords) ? d.swords.filter(k => SWORDS[k] && (isAdmin || !SWORDS[k].adminOnly)) : [];
+  if (!me.swords.includes('wood')) me.swords.unshift('wood');
+  me.sword = SWORDS[d.sword] && me.swords.includes(d.sword) ? d.sword : 'wood';
+  me.q = clamp(Math.floor(Number(d.q)) || 0, 0, QUESTS.length);
+  me.qp = Number(d.qp) || 0;
+  me.qs = ['idle', 'active', 'ready'].includes(d.qs) ? d.qs : 'idle';
+  const okFruit = k => FRUITS[k] && k !== 'ember' && (isAdmin || !FRUITS[k].adminOnly);
+  // Older saves kept fruits as "owned": move them into the vault so nothing is lost
+  me.vault = Array.isArray(d.vault) ? d.vault.filter(okFruit)
+    : (Array.isArray(d.owned) ? d.owned.filter(k => okFruit(k) && k !== d.fruit) : []);
+  me.gachaNext = Number(d.gachaNext) || 0;
+  me.gachaPending = d.gachaPending && FRUITS[d.gachaPending] ? d.gachaPending : null;
+  me.stockBought = d.stockBought && typeof d.stockBought === 'object' ? d.stockBought : {};
+  me.noCd = !!d.noCd;
+  me.maxHp = maxHpFor(me.level); me.hp = me.maxHp;
+  if (typeof d.x === 'number' && typeof d.y === 'number') { me.x = d.x; me.y = d.y; }
+}
+function saveProgress() { if (me.name) putSave(me.name, snapshot()); }
+// ================= PANELS =================
+function toggleShop(force) {
+  shopOpen = typeof force === 'boolean' ? force : !shopOpen;
+  document.getElementById('shop').style.display = shopOpen ? 'flex' : 'none';
+  if (shopOpen) renderShop();
+}
+function toggleQuest(force) {
+  questOpen = typeof force === 'boolean' ? force : !questOpen;
+  document.getElementById('quest').style.display = questOpen ? 'flex' : 'none';
+  if (questOpen) renderQuest();
+}
+
+// ================= SHOP =================
+function renderShop() {
+  const list = document.getElementById('shopList');
+  document.getElementById('shopBeli').textContent = 'Your Beli: ' + fmt(me.beli) + '   |   Level ' + me.level;
+  let html = '';
+  if (shopTab === 'fruit') {
+    html = '<div class="sh-card" style="grid-column:1/-1"><div class="sh-body"><h4>Fruits are not sold here</h4><small>Buy fruits at the Fruit Gacha (press G). Change your fruit with the Change fruit button on the left.</small></div></div>';
+    for (const k of []) {
+      const F = FRUITS[k], owned = me.owned.includes(k), on = me.fruit === k;
+      let btn;
+      if (on) btn = '<button class="sh-btn on" disabled>Equipped</button>';
+      else if (owned) btn = `<button class="sh-btn" data-act="equipF" data-k="${k}">Equip</button>`;
+      else if (me.level < F.lv) btn = `<button class="sh-btn" disabled>Requires level ${F.lv}</button>`;
+      else if (me.beli < F.p) btn = `<button class="sh-btn" disabled>Need ${fmt(F.p)} Beli</button>`;
+      else btn = `<button class="sh-btn" data-act="buyF" data-k="${k}">Buy for ${fmt(F.p)} Beli</button>`;
+      html += `<div class="sh-card">
+        <div class="sh-band" style="background:linear-gradient(135deg,${F.c},${F.g})"></div>
+        <div class="sh-body">
+          <h4>${F.n}</h4>${rarBadge(F.rar)}
+          <small>${F.sk.map(s => '<b>' + s.k.toUpperCase() + '</b> ' + s.n).join('<br>')}</small>
+          <div class="sh-stat">Passive: ${F.pa.d}</div><div class="sh-stat">Transform: ${F.tf.n} &middot; Level ${F.lv}</div>
+        </div>${btn}</div>`;
+    }
+  } else {
+    for (const k of SWORD_KEYS.filter(k => SWORDS[k].p > 0)) {
+      const S = SWORDS[k], owned = me.swords.includes(k), on = me.sword === k;
+      let btn;
+      if (on) btn = '<button class="sh-btn on" disabled>Equipped</button>';
+      else if (owned) btn = `<button class="sh-btn" data-act="equipS" data-k="${k}">Equip</button>`;
+      else if (me.level < S.lv) btn = `<button class="sh-btn" disabled>Requires level ${S.lv}</button>`;
+      else if (me.beli < S.p) btn = `<button class="sh-btn" disabled>Need ${fmt(S.p)} Beli</button>`;
+      else btn = `<button class="sh-btn" data-act="buyS" data-k="${k}">Buy for ${fmt(S.p)} Beli</button>`;
+      html += `<div class="sh-card">
+        <div class="sh-band" style="background:linear-gradient(135deg,${S.e},${S.b})"></div>
+        <div class="sh-body">
+          <h4>${S.n}</h4>${rarBadge(S.rar)}
+          <small>Damage x${S.dmg}</small>${S.ab ? '<small>Ability [R]: Dominion</small>' : ''}
+          <div class="sh-stat">Level ${S.lv}</div>
+        </div>${btn}</div>`;
+    }
+  }
+  list.innerHTML = html;
+}
+function buyFruit(k) {
+  const f = FRUITS[k];
+  if (me.beli < f.p) return msg('Not enough Beli');
+  if (me.level < f.lv) return msg('You need level ' + f.lv);
+  me.beli -= f.p; me.owned.push(k); me.fruit = k; me.tfT = 0;
+  msg('Bought ' + f.n + '!');
+  renderShop(); saveProgress();
+}
+function equipFruit(k) {
+  if (!me.owned.includes(k)) return;
+  me.fruit = k; me.tfT = 0;
+  msg('Equipped ' + FRUITS[k].n);
+  renderShop(); saveProgress();
+}
+function buySword(k) {
+  const S = SWORDS[k];
+  if (me.beli < S.p) return msg('Not enough Beli');
+  if (me.level < S.lv) return msg('You need level ' + S.lv);
+  me.beli -= S.p; me.swords.push(k); me.sword = k;
+  msg('Bought ' + S.n + '!');
+  renderShop(); saveProgress();
+}
+function equipSword(k) {
+  if (!me.swords.includes(k)) return;
+  me.sword = k;
+  msg('Equipped ' + SWORDS[k].n);
+  renderShop(); saveProgress();
+}
+document.getElementById('shopList').addEventListener('click', e => {
+  const b = e.target.closest('button[data-act]');
+  if (!b || b.disabled) return;
+  const k = b.dataset.k;
+  if (b.dataset.act === 'buyF') buyFruit(k);
+  else if (b.dataset.act === 'equipF') equipFruit(k);
+  else if (b.dataset.act === 'buyS') buySword(k);
+  else if (b.dataset.act === 'equipS') equipSword(k);
+});
+document.querySelectorAll('#shop .sh-tab').forEach(t => t.addEventListener('click', () => {
+  shopTab = t.dataset.tab;
+  document.querySelectorAll('#shop .sh-tab').forEach(x => x.classList.toggle('on', x === t));
+  renderShop();
+}));
+
+// ================= QUESTS =================
+function renderQuest() {
+  const body = document.getElementById('qBody');
+  if (me.q >= QUESTS.length) {
+    body.innerHTML = '<div class="q-card"><h4>All quests complete</h4><p>You have finished every trial on the seas. Keep training and climb the ranks.</p></div>';
+    return;
+  }
+  const Q = QUESTS[me.q];
+  const pct = me.qs === 'ready' ? 100 : me.qs === 'active' ? Math.round(me.qp / Q.need * 100) : 0;
+  let status, btn;
+  if (me.qs === 'idle') {
+    status = 'Not accepted yet';
+    btn = me.level >= Q.lv
+      ? '<button class="sh-btn" data-act="accept">Accept quest</button>'
+      : `<button class="sh-btn" disabled>Requires level ${Q.lv}</button>`;
+  } else if (me.qs === 'active') {
+    status = me.qp + ' / ' + Q.need + ' defeated';
+    btn = '<button class="sh-btn" disabled>In progress</button>';
+  } else {
+    status = 'Complete! Claim your reward';
+    btn = '<button class="sh-btn" data-act="claim">Claim reward</button>';
+  }
+  const rw = Q.rw;
+  const rwText = fmt(rw.beli) + ' Beli, ' + fmt(rw.xp) + ' XP' + (rw.sword ? ', ' + SWORDS[rw.sword].n : '');
+  body.innerHTML = `<div class="q-card">
+    <p class="q-step">Quest ${me.q + 1} of ${QUESTS.length} &middot; ${ZONES[Q.zone].name}</p>
+    <h4>${Q.t}</h4>
+    <p>${Q.d}</p>
+    <div class="q-bar"><div style="width:${pct}%"></div></div>
+    <p>${status}</p>
+    <p class="q-rw">Reward: ${rwText}</p>
+    ${btn}
+  </div>`;
+}
+function acceptQuest() {
+  const Q = QUESTS[me.q];
+  if (!Q || me.qs !== 'idle') return;
+  if (me.level < Q.lv) return msg('You need level ' + Q.lv);
+  me.qs = 'active'; me.qp = 0;
+  msg('Quest accepted: ' + Q.t);
+  renderQuest(); saveProgress();
+}
+function claimQuest() {
+  const Q = QUESTS[me.q];
+  if (!Q || me.qs !== 'ready') return;
+  me.beli += Q.rw.beli;
+  gainXp(Q.rw.xp);
+  if (Q.rw.sword && !me.swords.includes(Q.rw.sword)) me.swords.push(Q.rw.sword);
+  msg('Reward received: ' + Q.t);
+  me.q++; me.qs = 'idle'; me.qp = 0;
+  renderQuest(); saveProgress();
+}
+document.getElementById('qBody').addEventListener('click', e => {
+  const b = e.target.closest('button[data-act]');
+  if (!b || b.disabled) return;
+  if (b.dataset.act === 'accept') acceptQuest();
+  else if (b.dataset.act === 'claim') claimQuest();
+});
+
+// ================= ADMIN =================
+const fruitSelect = document.getElementById('adFruit');
+FRUIT_KEYS.forEach(k => { const o = document.createElement('option'); o.value = k; o.textContent = FRUITS[k].n; fruitSelect.appendChild(o); });
+const swordSelect = document.getElementById('adSword');
+SWORD_KEYS.forEach(k => { const o = document.createElement('option'); o.value = k; o.textContent = SWORDS[k].n; swordSelect.appendChild(o); });
+function refreshNames() {
+  const dl = document.getElementById('names');
+  dl.innerHTML = '';
+  for (const n of Object.keys(loadAccounts())) { const o = document.createElement('option'); o.value = n; dl.appendChild(o); }
+}
+function toggleAdmin() {
+  if (!isAdmin) return;
+  const p = document.getElementById('admin');
+  const open = p.style.display !== 'block';
+  p.style.display = open ? 'block' : 'none';
+  if (open) { refreshNames(); renderAdminLists(); }
+}
+const notified = new Set();
+function getJSON(k, d) { try { const v = JSON.parse(store.getItem(k)); return v == null ? d : v; } catch (e) { return d; } }
+function setJSON(k, v) { store.setItem(k, JSON.stringify(v)); }
+function feedback(t) {
+  msg(t);
+  const a = document.getElementById('adMsg'); if (a) a.textContent = t;
+}
+function mkBtn(label, fn) { const b = document.createElement('button'); b.textContent = label; b.onclick = fn; return b; }
+
+// ----- chat -----
+function postChat(m) {
+  const log = getJSON('ol_chat', []);
+  log.push(Object.assign({ id: Date.now() + '_' + Math.random().toString(36).slice(2, 7), at: Date.now() }, m));
+  while (log.length > 100) log.shift();
+  setJSON('ol_chat', log);
+  renderChat();
+}
+function renderChat() {
+  const box = document.getElementById('chatLog'); if (!box) return;
+  const log = getJSON('ol_chat', []);
+  if (me.name) {
+    for (const m of log) {
+      if (m.to === me.name && m.from !== me.name && m.at > me.loginAt && !notified.has(m.id)) {
+        notified.add(m.id); msg('Whisper from ' + m.from + ': ' + m.text);
+      }
+    }
+  }
+  const vis = log.filter(m => !m.to || m.to === me.name || m.from === me.name).slice(-8);
+  box.replaceChildren(...vis.map(m => {
+    const row = document.createElement('div');
+    const who = document.createElement('b');
+    const txt = document.createElement('span');
+    if (m.sys) { txt.textContent = m.text; txt.style.color = '#ffd166'; row.append(txt); return row; }
+    who.textContent = m.from + (m.to ? ' to ' + m.to : '') + ': ';
+    who.style.color = hasOwn(ADMIN_ACCOUNTS, m.from) ? '#ffd700' : m.to ? '#c9a7ff' : '#ffffff';
+    txt.textContent = m.text;
+    if (m.to) txt.style.fontStyle = 'italic';
+    row.append(who, txt);
+    return row;
+  }));
+}
+function sendChat(raw) {
+  const text = raw.trim();
+  if (!text || !me.name) return;
+  if (text.startsWith('/')) return runCommand(text);
+  postChat({ from: me.name, text: text.slice(0, 200) });
+}
+function openChat() { const i = document.getElementById('chatIn'); i.style.display = 'block'; i.focus(); }
+function closeChat() { const i = document.getElementById('chatIn'); i.value = ''; i.style.display = 'none'; i.blur(); }
+
+// ----- commands -----
+function runConsole() {
+  const el = document.getElementById('adCmdIn');
+  const t = el.value.trim(); if (!t) return;
+  runCommand(t.startsWith('/') ? t : '/' + t);
+  el.value = '';
+}
+function runCommand(text) {
+  const parts = text.trim().split(/\s+/);
+  const cmd = parts[0].slice(1).toLowerCase();
+  const args = parts.slice(1);
+  const accounts = loadAccounts();
+  if (cmd === 'help') return feedback(isAdmin
+    ? 'Player: /w name msg, /report name reason. Admin: /kick, /ban, /unban, /bans, /givefruit key [player], /givesword key [player], /level n [player], /beli n [player], /announce msg, /clearreports'
+    : 'Commands: /w name message (whisper), /report name reason');
+  if (cmd === 'w') {
+    const to = args[0], body = args.slice(1).join(' ');
+    if (!to || !body) return feedback('Usage: /w name message');
+    if (!hasOwn(accounts, to)) return feedback('No player named ' + to);
+    return postChat({ from: me.name, to, text: body.slice(0, 200) });
+  }
+  if (cmd === 'report') {
+    const target = args[0], reason = args.slice(1).join(' ') || 'No reason given';
+    if (!target) return feedback('Usage: /report name reason');
+    if (!hasOwn(accounts, target)) return feedback('No player named ' + target);
+    const reps = getJSON('ol_reports', []);
+    reps.push({ target, reason: reason.slice(0, 200), by: me.name, at: Date.now() });
+    setJSON('ol_reports', reps);
+    renderAdminLists();
+    return feedback('Report sent. Thank you.');
+  }
+  if (cmd === 'duel') {
+    const target = args[0];
+    if (!target) return feedback('Usage: /duel name');
+    if (target === me.name) return feedback('You cannot duel yourself.');
+    return challengeDuel(target);
+  }
+  const ADMIN_CMDS = ['kick', 'ban', 'unban', 'bans', 'givefruit', 'givesword', 'level', 'beli', 'announce', 'clearreports', 'nocd'];
+  if (!ADMIN_CMDS.includes(cmd)) return feedback('Unknown command. Type /help');
+  if (!isAdmin) return feedback('Admins only.');
+  const bans = getJSON('ol_bans', {});
+  if (cmd === 'kick') {
+    const target = args[0]; if (!target) return feedback('Usage: /kick name [reason]');
+    if (hasOwn(ADMIN_ACCOUNTS, target)) return feedback('You cannot kick an admin.');
+    kickPlayer(target, args.slice(1).join(' ') || 'Kicked by an admin');
+    return feedback('Kicked ' + target + '.');
+  }
+  if (cmd === 'ban') {
+    const target = args[0]; if (!target) return feedback('Usage: /ban name [reason]');
+    if (hasOwn(ADMIN_ACCOUNTS, target)) return feedback('You cannot ban an admin.');
+    const reason = args.slice(1).join(' ') || 'Banned by an admin';
+    bans[target] = { reason, at: Date.now() }; setJSON('ol_bans', bans);
+    kickPlayer(target, 'Banned: ' + reason);
+    renderAdminLists();
+    return feedback('Banned ' + target + '.');
+  }
+  if (cmd === 'unban') {
+    const target = args[0]; if (!target) return feedback('Usage: /unban name');
+    delete bans[target]; setJSON('ol_bans', bans); renderAdminLists();
+    return feedback('Unbanned ' + target + '.');
+  }
+  if (cmd === 'bans') return feedback('Banned: ' + (Object.keys(bans).join(', ') || 'none'));
+  if (cmd === 'givefruit' || cmd === 'givesword') {
+    const isFruit = cmd === 'givefruit', key = args[0], target = args[1] || me.name;
+    const table = isFruit ? FRUITS : SWORDS;
+    if (!key || !table[key]) return feedback('Unknown key. Options: ' + (isFruit ? FRUIT_KEYS : SWORD_KEYS).join(', '));
+    return setPlayerField(target, isFruit ? 'fruit' : 'sword', key);
+  }
+  if (cmd === 'level' || cmd === 'beli') {
+    const n = Number(args[0]);
+    if (args[0] === undefined || !Number.isFinite(n)) return feedback('Usage: /' + cmd + ' number [player]');
+    const value = cmd === 'level' ? Math.max(1, Math.floor(n)) : Math.floor(n);
+    return setPlayerField(args[1] || me.name, cmd, value);
+  }
+  if (cmd === 'announce') {
+    const body = args.join(' ');
+    if (!body) return feedback('Usage: /announce message');
+    return postChat({ from: me.name, sys: true, text: '[Announcement] ' + body.slice(0, 200) });
+  }
+  if (cmd === 'nocd') {
+    const target = args[0] || me.name, on = (args[1] || 'on').toLowerCase() !== 'off';
+    return setPlayerField(target, 'nocd', on);
+  }
+  if (cmd === 'clearreports') { setJSON('ol_reports', []); renderAdminLists(); return feedback('Reports cleared.'); }
+}
+function kickPlayer(target, reason) { setJSON('ol_kick_' + target, { reason, at: Date.now() }); }
+function checkKick() {
+  if (!me.name) return;
+  const k = getJSON('ol_kick_' + me.name, null);
+  if (!k || k.at <= me.loginAt) return;
+  store.removeItem('ol_kick_' + me.name);
+  kickedOut(k.reason);
+}
+function kickedOut(reason) {
+  saveProgress();
+  me.name = ''; isAdmin = false;
+  for (const k in keys) keys[k] = false;
+  pressed.clear();
+  toggleShop(false); toggleQuest(false); toggleGacha(false); toggleStore(false); closeChat();
+  document.getElementById('admin').style.display = 'none';
+  document.getElementById('login').style.display = 'flex';
+  setLoginErr('You were removed from the game: ' + reason);
+}
+
+// Admin grants to any account. Online players receive them through their own client, so they are not overwritten.
+function setPlayerField(target, type, value) {
+  if (target === me.name) { applyGrant({ type, value, self: true }); return; }
+  if (!hasOwn(loadAccounts(), target)) return feedback('No account named "' + target + '".');
+  const q = getJSON('ol_grants_' + target, []);
+  q.push({ type, value, at: Date.now() });
+  setJSON('ol_grants_' + target, q);
+  feedback('Sent to ' + target + '. Applied when they are online or next log in.');
+}
+function applyPendingGrants() {
+  if (!me.name) return;
+  const key = 'ol_grants_' + me.name;
+  const q = getJSON(key, []);
+  if (!q.length) return;
+  store.removeItem(key);
+  for (const g of q) applyGrant(g);
+}
+
+// ----- admin panel lists -----
+function renderAdminLists() {
+  const rl = document.getElementById('repList'), bl = document.getElementById('banList');
+  if (!rl || !bl) return;
+  rl.replaceChildren();
+  const reps = getJSON('ol_reports', []);
+  if (!reps.length) { const n = document.createElement('div'); n.textContent = 'No reports.'; rl.append(n); }
+  else rl.append(mkBtn('Clear all reports', () => runCommand('/clearreports')));
+  reps.slice().reverse().forEach(r => {
+    const row = document.createElement('div'); row.className = 'listrow';
+    const t = document.createElement('span'); t.textContent = r.target + ': ' + r.reason + ' (by ' + r.by + ')';
+    t.title = t.textContent;
+    row.append(t, mkBtn('Kick', () => runCommand('/kick ' + r.target + ' ' + r.reason)),
+      mkBtn('Ban', () => runCommand('/ban ' + r.target + ' ' + r.reason)));
+    rl.append(row);
+  });
+  bl.replaceChildren();
+  const bans = getJSON('ol_bans', {});
+  const names = Object.keys(bans);
+  if (!names.length) { const n = document.createElement('div'); n.textContent = 'No bans.'; bl.append(n); }
+  names.forEach(n => {
+    const row = document.createElement('div'); row.className = 'listrow';
+    const t = document.createElement('span'); t.textContent = n + ' - ' + bans[n].reason;
+    row.append(t, mkBtn('Unban', () => runCommand('/unban ' + n)));
+    bl.append(row);
+  });
+}
+
+const H3 = 3 * 60 * 60 * 1000, WEEK = 7 * 24 * 60 * 60 * 1000, MONTH = 30 * 24 * 60 * 60 * 1000;
+const GACHA_CD = 2 * 60 * 60 * 1000, VAULT_CAP = 5;
+const GACHA_POS = { x: 1500, y: 1840 }, STORE_POS = { x: 1300, y: 1640 };
+const GACHA_ODDS = [['common', 45], ['uncommon', 25], ['rare', 15], ['legendary', 9], ['mythical', 4], ['celestial', 2]];
+const STOCK_QTY = { common: 5, uncommon: 3, rare: 2, legendary: 1, mythical: 1, celestial: 1 };
+const STOCK_PRICE = { common: 5000, uncommon: 20000, rare: 90000, legendary: 500000, mythical: 2500000, celestial: 12000000 };
+const POOL = {};
+for (const [t] of GACHA_ODDS) POOL[t] = Object.keys(FRUIT_RAR).filter(k => FRUIT_RAR[k] === t && k !== 'ember' && k !== 'admin');
+let gachaOpen = false, storeOpen = false, storeTab = 'stock', gachaReadyFlag = null, stockSig = '';
+
+function rng(seed) {
+  let t = seed >>> 0;
+  return () => {
+    t = (t + 0x6D2B79F5) >>> 0;
+    let r = Math.imul(t ^ (t >>> 15), 1 | t);
+    r = (r + Math.imul(r ^ (r >>> 7), 61 | r)) ^ r;
+    return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function pick(list, rnd) { return list[Math.floor(rnd() * list.length)]; }
+
+// Stock is the same for everyone at the same moment: it is seeded by the time window
+function currentStock(now) {
+  const out = [];
+  const hb = Math.floor(now / H3), r = rng(hb * 7919 + 11);
+  const cu = POOL.common.concat(POOL.uncommon);
+  out.push({ k: pick(cu, r), win: 'h' + hb + 'a', end: (hb + 1) * H3 });
+  out.push({ k: pick(cu, r), win: 'h' + hb + 'b', end: (hb + 1) * H3 });
+  out.push({ k: pick(POOL.rare, r), win: 'h' + hb + 'c', end: (hb + 1) * H3 });
+  const wk = Math.floor(now / WEEK);
+  if (now - wk * WEEK < H3) out.push({ k: pick(POOL.legendary, rng(wk * 104729 + 7)), win: 'w' + wk, end: wk * WEEK + H3 });
+  const mo = Math.floor(now / MONTH);
+  if (now - mo * MONTH < H3) out.push({ k: pick(POOL.mythical.concat(POOL.celestial), rng(mo * 15485863 + 3)), win: 'm' + mo, end: mo * MONTH + H3 });
+  return out;
+}
+
+function gachaCost() { return 2000; }
+function gachaLeft() { if (isAdmin || me.noCd) return 0; return Math.max(0, (me.gachaNext || 0) - Date.now()); }
+function fmtTime(ms) {
+  const sec = Math.ceil(ms / 1000), h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), x = sec % 60;
+  return h > 0 ? h + 'h ' + m + 'm' : m > 0 ? m + 'm ' + x + 's' : x + 's';
+}
+function hasVaultRoom() { return isAdmin || me.vault.length < VAULT_CAP; }
+function textLine(t) { const p = document.createElement('p'); p.textContent = t; p.style.margin = '8px 0'; p.style.fontSize = '13px'; return p; }
+
+// Each fruit gets its own drawn look, based on its name, tinted by rarity
+function fruitIconCanvas(key, size) {
+  const F = FRUITS[key];
+  const cv = document.createElement('canvas'); cv.width = size; cv.height = size;
+  cv.style.width = size + 'px'; cv.style.height = size + 'px'; cv.style.display = 'block';
+  const c2 = cv.getContext('2d');
+  let hs = 0; for (const ch of key) hs = (Math.imul(hs, 31) + ch.charCodeAt(0)) >>> 0;
+  const rnd = rng(hs), pat = hs % 5;
+  const cx = size / 2, cy = size / 2 + size * 0.04;
+  const rx = size * (0.26 + rnd() * 0.06), ry = size * (0.30 + rnd() * 0.06);
+  const col = RAR_COL[F.rar] || '#ffffff';
+  const glow = c2.createRadialGradient(cx, cy, size * 0.1, cx, cy, size * 0.5);
+  glow.addColorStop(0, col); glow.addColorStop(1, 'rgba(0,0,0,0)');
+  c2.globalAlpha = 0.45; c2.fillStyle = glow; c2.fillRect(0, 0, size, size); c2.globalAlpha = 1;
+  const bg = c2.createRadialGradient(cx - rx * 0.3, cy - ry * 0.3, size * 0.02, cx, cy, ry * 1.2);
+  bg.addColorStop(0, F.g); bg.addColorStop(1, F.c);
+  c2.fillStyle = bg; c2.beginPath(); c2.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2); c2.fill();
+  c2.strokeStyle = shade(F.c, -50); c2.lineWidth = Math.max(1, size * 0.02); c2.stroke();
+  c2.save(); c2.beginPath(); c2.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2); c2.clip();
+  const dark = shade(F.c, -60), light = F.g;
+  if (pat === 0) {
+    for (let i = 0; i < 7; i++) { c2.fillStyle = dark; c2.beginPath(); c2.arc(cx + (rnd() - 0.5) * rx * 1.4, cy + (rnd() - 0.5) * ry * 1.4, size * (0.02 + rnd() * 0.03), 0, Math.PI * 2); c2.fill(); }
+  } else if (pat === 1) {
+    c2.strokeStyle = dark; c2.lineWidth = size * 0.05;
+    for (let i = -2; i <= 2; i++) { c2.beginPath(); c2.moveTo(cx + i * rx * 0.35, cy - ry); c2.quadraticCurveTo(cx + i * rx * 0.2, cy, cx + i * rx * 0.35, cy + ry); c2.stroke(); }
+  } else if (pat === 2) {
+    c2.fillStyle = '#2e7d32'; c2.beginPath(); c2.ellipse(cx + rx * 0.25, cy - ry * 0.85, rx * 0.45, ry * 0.18, -0.5, 0, Math.PI * 2); c2.fill();
+    c2.strokeStyle = '#1b5e20'; c2.lineWidth = size * 0.02; c2.beginPath(); c2.moveTo(cx, cy - ry * 0.7); c2.lineTo(cx + rx * 0.1, cy - ry * 1.0); c2.stroke();
+  } else if (pat === 3) {
+    c2.strokeStyle = light; c2.lineWidth = size * 0.03;
+    for (let i = 1; i <= 3; i++) { c2.beginPath(); c2.ellipse(cx, cy, rx * i / 3.5, ry * i / 3.5, 0, 0, Math.PI * 2); c2.stroke(); }
+  } else {
+    c2.fillStyle = light;
+    for (let i = 0; i < 6; i++) { const a = rnd() * Math.PI * 2, d = rnd(); c2.beginPath(); c2.arc(cx + Math.cos(a) * rx * d, cy + Math.sin(a) * ry * d, size * 0.025, 0, Math.PI * 2); c2.fill(); }
+  }
+  c2.restore();
+  c2.fillStyle = 'rgba(255,255,255,0.35)'; c2.beginPath(); c2.ellipse(cx - rx * 0.35, cy - ry * 0.35, rx * 0.22, ry * 0.14, -0.6, 0, Math.PI * 2); c2.fill();
+  if (['mythical', 'celestial', 'admin'].includes(F.rar)) {
+    c2.fillStyle = col;
+    for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; c2.beginPath(); c2.arc(cx + Math.cos(a) * size * 0.46, cy + Math.sin(a) * size * 0.46, size * 0.025, 0, Math.PI * 2); c2.fill(); }
+  }
+  if (F.rar === 'legendary') { c2.strokeStyle = col; c2.lineWidth = 2; c2.beginPath(); c2.arc(cx, cy, size * 0.44, 0, Math.PI * 2); c2.stroke(); }
+  return cv;
+}
+function fruitCard(key, sub) {
+  const F = FRUITS[key];
+  const card = document.createElement('div'); card.className = 'sh-card';
+  const band = document.createElement('div'); band.className = 'fr-band';
+  band.append(fruitIconCanvas(key, 84));
+  const body = document.createElement('div'); body.className = 'sh-body';
+  const h = document.createElement('h4'); h.textContent = F.n;
+  const badge = document.createElement('span'); badge.className = 'rar';
+  badge.style.background = RAR_COL[F.rar] || '#999'; badge.textContent = F.rar;
+  const small = document.createElement('small'); small.textContent = sub || '';
+  body.append(h, badge, small);
+  card.append(band, body);
+  return card;
+}
+
+// ----- fruit power changes -----
+function setFruit(k) {
+  const old = me.fruit;
+  if (k === old) return;
+  me.fruit = k; me.tfT = 0;
+  if (document.getElementById('store') && storeOpen) renderStore();
+  msg(old !== 'ember' ? FRUITS[old].n + ' is gone. Now using ' + FRUITS[k].n : 'Now using ' + FRUITS[k].n);
+}
+function confirmLoss(next) {
+  return me.fruit === 'ember' || me.fruit === next || confirm('Your current fruit ' + FRUITS[me.fruit].n + ' will be lost for good. Continue?');
+}
+
+// ----- gacha -----
+function rollGacha() {
+  if (!isAdmin && me.level < 11) return feedback('Reach level 11 to roll fruits.');
+  if (me.gachaPending) return feedback('Decide on your current roll first.');
+  const left = gachaLeft();
+  if (left > 0) return feedback('Gacha cooldown: ' + fmtTime(left) + ' left.');
+  const cost = gachaCost();
+  if (me.beli < cost) return feedback('Not enough Beli. A roll costs ' + fmt(cost) + ' at level ' + me.level + '.');
+  me.beli -= cost;
+  const r = Math.random() * 100;
+  let tier = 'common', acc = 0;
+  for (const [t, w] of GACHA_ODDS) { acc += w; if (r < acc) { tier = t; break; } }
+  const key = pick(POOL[tier], Math.random);
+  me.gachaPending = key;
+  if (!isAdmin && !me.noCd) me.gachaNext = Date.now() + GACHA_CD;
+  saveProgress();
+  feedback('You rolled ' + FRUITS[key].n + ' (' + tier + ')!');
+  renderGacha();
+}
+function gachaTake() {
+  const k = me.gachaPending; if (!k) return;
+  if (!confirmLoss(k)) return;
+  me.gachaPending = null;
+  setFruit(k);
+  saveProgress(); renderGacha(); renderStore();
+}
+function gachaStore() {
+  const k = me.gachaPending; if (!k) return;
+  if (!hasVaultRoom()) return feedback('Your vault is full (' + VAULT_CAP + '/' + VAULT_CAP + '). Discard something, or take the power.');
+  me.vault.push(k); me.gachaPending = null;
+  feedback('Stored ' + FRUITS[k].n + ' in your vault.');
+  saveProgress(); renderGacha(); renderStore();
+}
+function gachaLeave() {
+  const k = me.gachaPending; if (!k) return;
+  me.gachaPending = null;
+  feedback('You left ' + FRUITS[k].n + ' behind.');
+  saveProgress(); renderGacha();
+}
+
+// ----- storage keeper -----
+function storeCurrent() {
+  if (me.fruit === 'ember') return feedback('Ember Fruit is your base power and cannot be stored.');
+  if (!hasVaultRoom()) return feedback('Your vault is full.');
+  me.vault.push(me.fruit);
+  feedback('Stored ' + FRUITS[me.fruit].n + ' in your vault.');
+  me.fruit = 'ember'; me.tfT = 0;
+  saveProgress(); renderStore();
+}
+function useEmber() {
+  if (!confirmLoss('ember')) return;
+  setFruit('ember'); saveProgress(); renderStore();
+}
+function equipFromVault(i) {
+  const k = me.vault[i]; if (!k) return;
+  if (k === me.fruit) return feedback(FRUITS[k].n + ' is already equipped.');
+  if (!confirmLoss(k)) return;
+  me.vault.splice(i, 1);
+  setFruit(k);
+  saveProgress(); renderStore();
+}
+function discardVault(i) {
+  const k = me.vault[i]; if (!k) return;
+  if (!confirm('Discard ' + FRUITS[k].n + ' permanently?')) return;
+  me.vault.splice(i, 1);
+  feedback('Discarded ' + FRUITS[k].n + '.');
+  saveProgress(); renderStore();
+}
+function boughtCount(id) { const v = me.stockBought[id]; return typeof v === 'number' ? v : (v ? 1 : 0); }
+function buyStock(key, win) {
+  const id = key + '|' + win, rar = FRUITS[key].rar;
+  if (boughtCount(id) >= STOCK_QTY[rar]) return feedback('You have bought all available copies in this restock.');
+  const price = STOCK_PRICE[rar];
+  if (me.beli < price) return feedback('Not enough Beli. Price: ' + fmt(price));
+  if (!hasVaultRoom()) return feedback('Your vault is full.');
+  me.beli -= price; me.vault.push(key); me.stockBought[id] = boughtCount(id) + 1;
+  feedback('Bought ' + FRUITS[key].n + '. It is in your vault.');
+  saveProgress(); renderStock(); renderStore();
+}
+
+// ----- panels -----
+function toggleGacha(force) {
+  gachaOpen = typeof force === 'boolean' ? force : !gachaOpen;
+  document.getElementById('gacha').style.display = gachaOpen ? 'flex' : 'none';
+  if (gachaOpen) renderGacha();
+}
+function toggleStore(force) {
+  storeOpen = typeof force === 'boolean' ? force : !storeOpen;
+  document.getElementById('store').style.display = storeOpen ? 'flex' : 'none';
+  if (storeOpen) renderStore();
+}
+function updateGachaTimer() {
+  const el = document.getElementById('gachaTimer'); if (!el) return;
+  const left = gachaLeft();
+  el.textContent = (isAdmin || me.noCd) ? 'No cooldown on your account.' : left > 0 ? 'Next roll in ' + fmtTime(left) : 'Ready to roll.';
+}
+function fruitRow(key, sub) {
+  const F = FRUITS[key];
+  const row = document.createElement('div'); row.className = 'fr-row';
+  const ic = document.createElement('div');
+  ic.style.cssText = 'flex:0 0 auto;width:60px;height:60px;border-radius:12px;background:radial-gradient(circle,#1d3a63,#0a1830);display:flex;align-items:center;justify-content:center';
+  ic.append(fruitIconCanvas(key, 56));
+  const info = document.createElement('div'); info.className = 'fr-info';
+  const h = document.createElement('h4'); h.textContent = F.n;
+  const badge = document.createElement('span'); badge.className = 'rar';
+  badge.style.background = RAR_COL[F.rar] || '#999'; badge.textContent = F.rar;
+  const small = document.createElement('small'); small.textContent = sub || '';
+  info.append(h, badge, small);
+  row.append(ic, info);
+  return row;
+}
+function renderGacha() {
+  const body = document.getElementById('gachaBody');
+  body.replaceChildren();
+  document.getElementById('gachaInfo').textContent = 'Roll cost: ' + fmt(gachaCost()) + ' Beli  |  Your Beli: ' + fmt(me.beli);
+  if (me.gachaPending) {
+    const k = me.gachaPending, F = FRUITS[k];
+    body.append(textLine('You rolled this fruit. Take its power now, store it in your vault, or leave it.'));
+    body.append(fruitCard(k, 'Passive: ' + F.pa.d + '\nTransform: ' + F.tf.n));
+    const row = document.createElement('div'); row.style.cssText = 'display:flex;gap:8px;margin-top:10px';
+    for (const b of [mkBtn('Take power', gachaTake), mkBtn('Store in vault', gachaStore), mkBtn('Leave', gachaLeave)]) { b.style.flex = '1'; row.append(b); }
+    body.append(row);
+    gachaReadyFlag = false;
+  } else {
+    body.append(textLine(!isAdmin && me.level < 11 ? 'Reach level 11 to roll fruits.' : 'Roll for a random fruit. Rarer fruits are less likely.'));
+    const timer = textLine(''); timer.id = 'gachaTimer'; body.append(timer);
+    const b = mkBtn('Roll (' + fmt(gachaCost()) + ' Beli)', rollGacha);
+    b.disabled = gachaLeft() > 0 || me.beli < gachaCost() || (!isAdmin && me.level < 11);
+    body.append(b);
+    body.append(textLine('Odds: ' + GACHA_ODDS.map(([t, w]) => t + ' ' + w + '%').join(', ')));
+    gachaReadyFlag = gachaLeft() === 0;
+  }
+  updateGachaTimer();
+}
+
+let stockOpen = false;
+function toggleStock(force) {
+  stockOpen = typeof force === 'boolean' ? force : !stockOpen;
+  document.getElementById('stock').style.display = stockOpen ? 'flex' : 'none';
+  if (stockOpen) renderStock();
+}
+function fmtLong(ms) {
+  const sec = Math.max(0, Math.ceil(ms / 1000)), d = Math.floor(sec / 86400), h = Math.floor((sec % 86400) / 3600);
+  const m = Math.floor((sec % 3600) / 60), x = sec % 60;
+  return d > 0 ? d + 'd ' + h + 'h' : h > 0 ? h + 'h ' + m + 'm' : m > 0 ? m + 'm ' + x + 's' : x + 's';
+}
+function stockRule(rar) {
+  if (rar === 'legendary') return 'Appears once a week for 3 hours. One copy per appearance.';
+  if (rar === 'mythical' || rar === 'celestial') return 'Appears once a month for 3 hours. One copy per appearance.';
+  return 'Restocks every 3 hours.';
+}
+function stockFooter(now) {
+  const nextH3 = (Math.floor(now / H3) + 1) * H3;
+  const wk = Math.floor(now / WEEK), mo = Math.floor(now / MONTH);
+  const legTxt = now - wk * WEEK < H3 ? 'Legendary is in stock now' : 'Next legendary in ' + fmtLong((wk + 1) * WEEK - now);
+  const mythTxt = now - mo * MONTH < H3 ? 'Mythical/celestial are in stock now' : 'Next mythical/celestial in ' + fmtLong((mo + 1) * MONTH - now);
+  return 'Next restock in ' + fmtLong(nextH3 - now) + '.  ' + legTxt + '.  ' + mythTxt + '.';
+}
+function updateStockTimers() {
+  const el = document.getElementById('stockFoot');
+  if (el) el.textContent = stockFooter(Date.now());
+}
+function renderStock() {
+  const body = document.getElementById('stockBody');
+  body.replaceChildren();
+  const now = Date.now(), stock = currentStock(now);
+  stockSig = stock.map(x => x.k + x.win).join(',');
+  document.getElementById('stockInfo').textContent = 'Your Beli: ' + fmt(me.beli) + '  |  Vault ' + me.vault.length + '/' + (isAdmin ? 'unlimited' : VAULT_CAP);
+  for (const it of stock) {
+    const F = FRUITS[it.k], id = it.k + '|' + it.win, left = STOCK_QTY[F.rar] - boughtCount(id), price = STOCK_PRICE[F.rar];
+    const until = new Date(it.end).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const row = fruitRow(it.k, 'Price: ' + fmt(price) + ' Beli\nLeft for you: ' + Math.max(0, left) + ' of ' + STOCK_QTY[F.rar] +
+      '\nIn stock until ' + until + '\n' + stockRule(F.rar));
+    const buy = mkBtn(left > 0 ? 'Buy' : 'Sold out', () => buyStock(it.k, it.win));
+    buy.className = 'sh-btn';
+    buy.disabled = left <= 0 || me.beli < price || !hasVaultRoom();
+    row.append(buy);
+    body.append(row);
+  }
+  if (!stock.length) body.append(textLine('Nothing in stock right now.'));
+  updateStockTimers();
+}
+
+function renderStore() {
+  const body = document.getElementById('storeBody');
+  body.replaceChildren();
+  document.getElementById('storeInfo').textContent = 'Equipped: ' + FRUITS[me.fruit].n + '  |  Vault ' + me.vault.length + '/' + (isAdmin ? 'unlimited' : VAULT_CAP);
+  const top = document.createElement('div'); top.style.cssText = 'display:flex;gap:8px;flex:0 0 auto';
+  const sc = mkBtn('Store current fruit', storeCurrent); sc.className = 'sh-btn'; sc.style.flex = '1'; sc.style.margin = '0';
+  sc.disabled = me.fruit === 'ember';
+  if (me.fruit === 'ember') sc.textContent = 'Store current (base Ember)';
+  const ue = mkBtn('Use Ember (base)', useEmber); ue.className = 'sh-btn'; ue.style.flex = '1'; ue.style.margin = '0';
+  ue.disabled = me.fruit === 'ember';
+  top.append(sc, ue); body.append(top);
+  if (!me.vault.length) body.append(textLine('Your vault is empty. Roll or buy fruits at the Fruit Gacha, then store them here.'));
+  me.vault.forEach((k, i) => {
+    const row = fruitRow(k, 'Passive: ' + FRUITS[k].pa.d + '\nTap to equip');
+    row.onclick = () => equipFromVault(i);
+    const dc = mkBtn('Discard', ev => { ev.stopPropagation(); discardVault(i); });
+    dc.className = 'sh-btn'; dc.style.background = 'linear-gradient(#e57373,#c62828)'; dc.style.color = '#fff';
+    row.append(dc);
+    body.append(row);
+  });
+}
+
+function adCmd(type, inputId) {
+  const el = document.getElementById(inputId);
+  let value = el.value;
+  if (type !== 'fruit' && type !== 'sword') {
+    if (el.value === '' || !Number.isFinite(Number(value))) return feedback('Enter a number.');
+    value = Math.floor(Number(value));
+    if (type === 'level') value = Math.max(1, value);
+  }
+  const target = document.getElementById('adTarget').value.trim() || me.name;
+  setPlayerField(target, type, value);
+}
+function applyGrant(g) {
+  if (g.type === 'level') {
+    me.level = g.value; me.xp = 0; me.maxHp = maxHpFor(me.level); me.hp = me.maxHp;
+    msg('Admin set your level to ' + fmt(g.value));
+  } else if (g.type === 'beli') {
+    me.beli = g.value; msg('Admin set your Beli to ' + fmt(g.value));
+  } else if (g.type === 'fruit') {
+    if (g.value === 'ember') {
+      if (!g.self) msg('Ember Fruit is the base fruit');
+      else { if (me.fruit !== 'ember') me.vault.push(me.fruit); setFruit('ember'); }
+    }
+    else if (g.self) {
+      if (me.fruit !== 'ember') me.vault.push(me.fruit);
+      me.fruit = g.value; me.tfT = 0;
+      msg('Admin gave you ' + FRUITS[g.value].n + '. Your previous fruit is in your vault.');
+    } else { me.vault.push(g.value); msg('Admin sent you ' + FRUITS[g.value].n + ' (in your vault)'); }
+    renderStore();
+  } else if (g.type === 'nocd') {
+    me.noCd = !!g.value; msg(me.noCd ? 'Gacha cooldown removed' : 'Gacha cooldown restored');
+  } else if (g.type === 'sword') {
+    if (!me.swords.includes(g.value)) me.swords.push(g.value);
+    me.sword = g.value; msg('Admin gave you ' + SWORDS[g.value].n); renderShop();
+  }
+  saveProgress();
+}
+
+// ================= LOGIN =================
+function setLoginErr(t) { document.getElementById('loginErr').textContent = t; }
+function login() {
+  const name = document.getElementById('name').value.trim();
+  const passkey = document.getElementById('passkey').value;
+  if (!/^[A-Za-z0-9_]{3,14}$/.test(name)) return setLoginErr('Username: 3-14 letters, numbers or _.');
+  if (!passkey) return setLoginErr('Enter a passkey.');
+  const bans = getJSON('ol_bans', {});
+  if (hasOwn(bans, name) && !hasOwn(ADMIN_ACCOUNTS, name)) return setLoginErr('You are banned: ' + bans[name].reason);
+  let isAdminAcc = false;
+  if (hasOwn(ADMIN_ACCOUNTS, name)) {
+    if (ADMIN_ACCOUNTS[name] !== passkey) return setLoginErr('Wrong username or passkey.');
+    isAdminAcc = true;
+  } else {
+    const accs = loadAccounts();
+    if (!hasOwn(accs, name)) {
+      if (passkey.length < 4) return setLoginErr('Passkey must be at least 4 characters.');
+      accs[name] = { passkey: hashPass(passkey) }; saveAccounts(accs);
+    } else if (accs[name].passkey !== hashPass(passkey)) return setLoginErr('Wrong username or passkey.');
+  }
+  startGame(name, isAdminAcc);
+}
+function startGame(name, admin) {
+  me.name = name; isAdmin = admin; me.loginAt = Date.now();
+  document.getElementById('admBtnT').style.display = admin && isTouch ? '' : 'none';
+  document.getElementById('admBtnPC').style.display = admin && !isTouch ? '' : 'none';
+  const s = getSave(name);
+  applySave(s);
+  if (!s) saveProgress();
+  applyPendingGrants();
+  setupPresence();
+  renderChat();
+  document.getElementById('login').style.display = 'none';
+  msg(admin ? 'Welcome, admin! Press F2 for the admin panel.' : 'Welcome, ' + name + '!');
+}
+document.getElementById('start').onclick = () => dbReady.then(ok => { if (ok) login(); });
+document.getElementById('name').addEventListener('keydown', e => { if (e.key === 'Enter') dbReady.then(ok => { if (ok) login(); }); });
+document.getElementById('passkey').addEventListener('keydown', e => { if (e.key === 'Enter') dbReady.then(ok => { if (ok) login(); }); });
+
+// ================= INPUT =================
+addEventListener('keydown', e => {
+  if (e.key === 'Enter' && me.name && e.target.tagName !== 'INPUT') { e.preventDefault(); openChat(); return; }
+  if (['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName)) return;
+  const k = e.key.toLowerCase();
+  if (k === ' ') e.preventDefault();
+  if (k === 'f2') { toggleAdmin(); return; }
+  if (!keys[k]) pressed.add(k);
+  keys[k] = true;
+});
+addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+addEventListener('blur', () => { for (const k in keys) keys[k] = false; mouse.down = false; });
+
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+function resize() {
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  canvas.width = Math.floor(innerWidth * dpr); canvas.height = Math.floor(innerHeight * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+addEventListener('resize', resize);
+resize();
+canvas.addEventListener('mousedown', e => { if (e.button === 0) mouse.down = true; });
+addEventListener('mouseup', () => { mouse.down = false; });
+addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+canvas.addEventListener('contextmenu', e => e.preventDefault());
+setInterval(saveProgress, 5000);
+addEventListener('pagehide', saveProgress);
+// ================= ATTACK ANIMATION STATE =================
+const anim = { m1: { t: 0, max: 0.24, dir: 1, arc: 2.5 }, cast: { t: 0, max: 0.45, c: '#fff', g: '#fff' } };
+
+// ================= UPDATE =================
+function update(dt) {
+  time += dt;
+  if (!me.name) { pressed.clear(); return; }
+
+  let mx = 0, my = 0;
+  if (keys['w'] || keys['arrowup']) my--;
+  if (keys['s'] || keys['arrowdown']) my++;
+  if (keys['a'] || keys['arrowleft']) mx--;
+  if (keys['d'] || keys['arrowright']) mx++;
+  mx += joy.L.x; my += joy.L.y;
+  { const l = Math.hypot(mx, my); if (l > 1) { mx /= l; my /= l; } }
+  me.moving = !!(mx || my);
+  if (me.moving) me.walk += dt * 10;
+  me.slowT = Math.max(0, me.slowT - dt);
+  me.shieldT = Math.max(0, (me.shieldT || 0) - dt); if (me.shieldT <= 0) me.shield = 0;
+  me.buffT = Math.max(0, (me.buffT || 0) - dt);
+  if (pasv().regen && me.hp < me.maxHp) healMe(pasv().regen * dt);
+  const sp = 190 * dt * pasv().spd * (me.tfT > 0 ? 1.25 : 1) * (me.slowT > 0 ? 0.5 : 1);
+  me.x = clamp(me.x + mx * sp, 20, W - 20);
+  me.y = clamp(me.y + my * sp, 20, H - 20);
+
+  cam.x = me.x - VW() / 2; cam.y = me.y - VH() / 2;
+  const rm = Math.hypot(joy.R.x, joy.R.y);
+  if (rm > 0.25) touchAim = Math.atan2(joy.R.y, joy.R.x);
+  aim = isTouch ? touchAim : Math.atan2(mouse.y + cam.y - me.y, mouse.x + cam.x - me.x);
+  me.facing.x = Math.cos(aim); me.facing.y = Math.sin(aim);
+
+  for (const k in me.cds) me.cds[k] = Math.max(0, me.cds[k] - dt);
+  me.combo.cd = Math.max(0, me.combo.cd - dt);
+  me.combo.timer -= dt;
+  if (me.combo.timer <= 0) me.combo.step = 0;
+  me.flash = Math.max(0, me.flash - dt);
+  if (me.tfT > 0) { me.tfT -= dt; if (me.tfT <= 0) { me.tfT = 0; msg('Transformation ended'); } }
+  me.tfCd = Math.max(0, me.tfCd - dt);
+  me.swCd = Math.max(0, (me.swCd || 0) - dt);
+  anim.m1.t = Math.max(0, anim.m1.t - dt);
+  anim.cast.t = Math.max(0, anim.cast.t - dt);
+  if (activeDuel && activeDuel.start && Date.now() - activeDuel.start > DUEL_TIME && !activeDuel.ending) {
+    activeDuel.ending = true;
+    const o = remote[activeDuel.opp];
+    const myPct = me.hp / me.maxHp, oPct = o ? o.hp / (o.maxHp || 1) : 0;
+    endDuel(myPct >= oPct ? me.name : activeDuel.opp);
+  }
+
+  if (mouse.down || keys[' '] || rm > 0.25 || holdBtn.m1) basicAttack();
+  ['z', 'x', 'c', 'f'].forEach((k, i) => { if (pressed.has(k)) useSkill(i); });
+  if (pressed.has('v')) toggleTF();
+  if (pressed.has('r')) useSwordAbility();
+  if (pressed.has('g')) { if (gachaOpen) toggleGacha(false); else if (dist(me.x, me.y, GACHA_POS.x, GACHA_POS.y) < 140) toggleGacha(true); else msg('Walk up to the Fruit Gacha to roll'); }
+  if (pressed.has('t')) toggleStore();
+  if (pressed.has('y')) { if (stockOpen) toggleStock(false); else if (dist(me.x, me.y, STORE_POS.x, STORE_POS.y) < 140) toggleStock(true); else msg('Walk up to the Stock Keeper'); }
+  if (stockOpen && dist(me.x, me.y, STORE_POS.x, STORE_POS.y) > 220) toggleStock(false);
+  if (gachaOpen && dist(me.x, me.y, GACHA_POS.x, GACHA_POS.y) > 220) toggleGacha(false);
+  if (pressed.has('e')) toggleShop();
+  if (pressed.has('q')) {
+    if (questOpen) toggleQuest(false);
+    else if (dist(me.x, me.y, QUEST_POS.x, QUEST_POS.y) < 140) toggleQuest(true);
+    else msg('Walk up to Elder Rowan to talk');
+  }
+  if (questOpen && dist(me.x, me.y, QUEST_POS.x, QUEST_POS.y) > 220) toggleQuest(false);
+  pressed.clear();
+
+  // Player projectiles
+  for (const p of projs) {
+    p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt;
+    if (Math.random() < 0.5) burst(p.x, p.y, p.g, 1, 40, 0.25);
+    for (const e of enemies) {
+      if (e.dead || dist(e.x, e.y - 20 * e.scale, p.x, p.y) > 34 * e.scale) continue;
+      hurt(e, dmgFor(p.m), p.fx); p.life = 0; break;
+    }
+  }
+  projs = projs.filter(p => p.life > 0);
+
+  // Clones shoot at nearby enemies
+  for (const c of clones) {
+    c.t -= dt; c.cd -= dt;
+    if (c.cd <= 0) {
+      const t = nearest(c.x, c.y, 320);
+      if (t) { const a = Math.atan2(t.y - c.y, t.x - c.x); projs.push({ x: c.x, y: c.y, vx: Math.cos(a) * 460, vy: Math.sin(a) * 460, life: 0.9, m: 0.7, c: c.c, g: c.g }); }
+      c.cd = 0.8;
+    }
+  }
+  clones = clones.filter(c => c.t > 0);
+
+  // Boss projectiles
+  for (const p of eprojs) {
+    p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt;
+    if (dist(p.x, p.y, me.x, me.y) < 26) { hurtPlayer(p.dmg); p.life = 0; }
+  }
+  eprojs = eprojs.filter(p => p.life > 0);
+
+  // Boss hazards (telegraphed bursts and lingering pools)
+  for (const h of hazards) {
+    h.t -= dt;
+    if (h.type === 'burst') {
+      if (h.t <= 0 && !h.hit) {
+        h.hit = true;
+        burst(h.x, h.y, h.c, 26, 260, 0.5);
+        effects.push({ t: 'sk', sh: 'ring', x: h.x, y: h.y, r: h.r, a: 0, life: 0.4, max: 0.4, c: h.c, g: h.g });
+        addShake(5);
+        if (h.friendly) { for (const e of enemies) if (!e.dead && dist(e.x, e.y, h.x, h.y) < h.r) hurt(e, h.dmg, h.fx); }
+        else if (dist(me.x, me.y, h.x, h.y) < h.r) hurtPlayer(h.dmg);
+      }
+    } else if (h.friendly) {
+      h.tick -= dt;
+      for (const e of enemies) {
+        if (e.dead || dist(e.x, e.y, h.x, h.y) > h.r) continue;
+        if (h.slow) e.slow = Math.max(e.slow, 0.3);
+        if (h.pull) { const dd = dist(e.x, e.y, h.x, h.y) || 1; e.x += (h.x - e.x) / dd * 140 * dt; e.y += (h.y - e.y) / dd * 140 * dt; }
+        if (h.tick <= 0 && h.dmg) hurt(e, h.dmg, h.fx);
+      }
+      if (h.tick <= 0) h.tick = 0.6;
+    } else {
+      h.tick -= dt;
+      if (dist(me.x, me.y, h.x, h.y) < h.r) {
+        if (h.slow) me.slowT = Math.max(me.slowT, 0.3);
+        if (h.tick <= 0) { h.tick = 0.6; hurtPlayer(h.dmg); }
+      }
+    }
+  }
+  hazards = hazards.filter(h => h.type === 'pool' ? h.t > 0 : !h.hit);
+
+  // Enemies
+  for (const e of enemies) {
+    if (e.dead) {
+      e.respawn -= dt;
+      if (e.respawn <= 0) Object.assign(e, makeEnemy(e.zone, e.boss, e.slot));
+      continue;
+    }
+    e.slow = Math.max(0, e.slow - dt); e.stun = Math.max(0, e.stun - dt);
+    e.atk = Math.max(0, e.atk - dt); e.flash = Math.max(0, e.flash - dt);
+    e.walk += dt * 6;
+    if (e.dotT > 0) { e.dotT -= dt; e.hp -= e.dotDps * dt; if (e.hp <= 0) { kill(e); continue; } }
+    if (e.burn > 0) { e.burn -= dt; e.hp -= e.maxHp * 0.05 * dt; if (e.hp <= 0) { kill(e); continue; } }
+    const kf = Math.max(0, 1 - dt * 8);
+    e.kx *= kf; e.ky *= kf;
+    e.x = clamp(e.x + e.kx * dt, 20, W - 20);
+    e.y = clamp(e.y + e.ky * dt, 20, H - 20);
+    if (inSafe(e.x, e.y)) { const sd = dist(e.x, e.y, SAFE.x, SAFE.y) || 1; e.x = SAFE.x + (e.x - SAFE.x) / sd * (SAFE.r + 10); e.y = SAFE.y + (e.y - SAFE.y) / sd * (SAFE.r + 10); }
+    if (e.stun > 0) continue;
+    const d = dist(e.x, e.y, me.x, me.y), aggro = e.boss ? 420 : 260;
+    if (e.boss && d < 420) {
+      e.abT -= dt;
+      if (e.abT <= 0) { bossCast(e); e.abT = 4.5; }
+    }
+    if (d < aggro && d > 28 * e.scale) {
+      const s = (e.slow > 0 ? 0.5 : 1) * (e.boss ? 80 : 90) * dt;
+      e.x += (me.x - e.x) / d * s; e.y += (me.y - e.y) / d * s;
+    } else if (d >= aggro) {
+      const hd = dist(e.x, e.y, e.hx, e.hy);
+      if (hd > 5) { e.x += (e.hx - e.x) / hd * 60 * dt; e.y += (e.hy - e.y) / hd * 60 * dt; }
+    }
+    if (d < 30 * e.scale && e.atk <= 0) { hurtPlayer(e.dmg); e.atk = e.boss ? 1.2 : 1; }
+  }
+
+  for (const f of effects) f.life -= dt;
+  effects = effects.filter(f => f.life > 0);
+  let j = 0;
+  for (let i = 0; i < parts.length; i++) {
+    const p = parts[i];
+    p.life -= dt;
+    if (p.life <= 0) continue;
+    p.x += p.vx * dt; p.y += p.vy * dt;
+    const damp = Math.max(0, 1 - 3 * dt);
+    p.vx *= damp; p.vy *= damp;
+    parts[j++] = p;
+  }
+  parts.length = j;
+  for (const t of texts) { t.life -= dt; t.y -= 40 * dt; }
+  texts = texts.filter(t => t.life > 0);
+  if (noticeT > 0) noticeT -= dt;
+  shake *= 0.88;
+  if (shake < 0.05) shake = 0;
+}
+
+// ================= DRAWING =================
+function rr(x, y, w, h, r) {
+  r = Math.min(r, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+function drawDeco(d) {
+  const s = d.s, x = d.x, y = d.y;
+  ctx.fillStyle = 'rgba(0,0,0,0.25)';
+  ctx.beginPath(); ctx.ellipse(x, y + 4 * s, 14 * s, 5 * s, 0, 0, Math.PI * 2); ctx.fill();
+  if (d.t === 'palm') {
+    ctx.strokeStyle = '#7a4a24'; ctx.lineWidth = 7 * s; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x + 6 * s, y - 18 * s, x + 2 * s, y - 34 * s); ctx.stroke();
+    for (let i = 0; i < 6; i++) {
+      const a = -Math.PI / 2 + (i - 2.5) * 0.55;
+      const tx = x + 2 * s + Math.cos(a) * 24 * s, ty = y - 34 * s + Math.sin(a) * 14 * s + 6 * s;
+      const lg = ctx.createLinearGradient(x, y - 34 * s, tx, ty);
+      lg.addColorStop(0, '#1f6b32'); lg.addColorStop(1, '#56b150');
+      ctx.fillStyle = lg;
+      ctx.beginPath(); ctx.moveTo(x + 2 * s, y - 34 * s);
+      ctx.quadraticCurveTo((x + tx) / 2, Math.min(y - 34 * s, ty) - 8 * s, tx, ty);
+      ctx.quadraticCurveTo((x + tx) / 2, Math.min(y - 34 * s, ty) - 1 * s, x + 2 * s, y - 34 * s);
+      ctx.fill();
+    }
+  } else if (d.t === 'pine') {
+    for (let i = 0; i < 3; i++) {
+      const top = y - (34 + i * 12) * s, w = (18 - i * 4) * s;
+      const g = ctx.createLinearGradient(x - w, 0, x + w, 0);
+      g.addColorStop(0, '#1d4f3a'); g.addColorStop(0.5, '#2f7a55'); g.addColorStop(1, '#163c2b');
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.moveTo(x, top); ctx.lineTo(x - w, top + 24 * s); ctx.lineTo(x + w, top + 24 * s); ctx.closePath(); ctx.fill();
+    }
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.moveTo(x, y - 34 * s); ctx.lineTo(x - 5 * s, y - 26 * s); ctx.lineTo(x + 5 * s, y - 26 * s); ctx.fill();
+  } else if (d.t === 'cactus') {
+    const g = ctx.createLinearGradient(x - 6 * s, 0, x + 6 * s, 0);
+    g.addColorStop(0, '#2e7d3a'); g.addColorStop(0.5, '#5fb86a'); g.addColorStop(1, '#2a6b33');
+    ctx.fillStyle = g;
+    rr(x - 6 * s, y - 30 * s, 12 * s, 32 * s, 6 * s); ctx.fill();
+    rr(x - 16 * s, y - 16 * s, 10 * s, 6 * s, 3 * s); ctx.fill();
+    rr(x + 6 * s, y - 22 * s, 10 * s, 6 * s, 3 * s); ctx.fill();
+  } else {
+    const g = ctx.createRadialGradient(x - 4 * s, y - 8 * s, 2, x, y - 4 * s, 16 * s);
+    g.addColorStop(0, '#7a4a40'); g.addColorStop(1, '#2a1612');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.ellipse(x, y - 6 * s, 14 * s, 11 * s, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#ff7a2a'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(x - 6 * s, y - 6 * s); ctx.lineTo(x, y - 2 * s); ctx.lineTo(x + 5 * s, y - 7 * s); ctx.stroke();
+  }
+}
+
+// Draws a person with shading, outline, and facial detail
+function drawHuman(x, y, o) {
+  const sd = o.seed || 0, sc = o.scale || 1;
+  y -= o.walk ? Math.abs(Math.sin(o.walk)) * 1.6 * sc : Math.sin(time * 3 + sd) * 0.6 * sc;
+  const blink = Math.sin(time * 0.7 + sd * 1.7) > 0.985 ? 0.12 : 1;
+  const s = o.scale || 1, step = o.walk ? Math.sin(o.walk) * 4 * s : 0, fr = Math.cos(o.face) >= 0 ? 1 : -1;
+  const dk = shade(o.shirt, -40), sk = o.skin, hy = y - 17 * s;
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.beginPath(); ctx.ellipse(x, y + 22 * s, 13 * s, 5 * s, 0, 0, Math.PI * 2); ctx.fill();
+  if (o.busy) {
+    ctx.strokeStyle = o.glow; ctx.globalAlpha = 0.6; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(x, y - 4 * s, 20 * s + Math.sin(time * 12) * 1.5, 0, Math.PI * 2); ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+  ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(0,0,0,0.35)';
+
+  // Legs and shoes
+  const lg = ctx.createLinearGradient(x, 0, x + 8 * s, 0);
+  lg.addColorStop(0, shade(o.pants, 25)); lg.addColorStop(1, shade(o.pants, -25));
+  ctx.fillStyle = lg;
+  rr(x - 6 * s - step * 0.5, y + 6 * s, 5.5 * s, 15 * s, 2 * s); ctx.fill(); ctx.stroke();
+  rr(x + 0.5 * s + step * 0.5, y + 6 * s, 5.5 * s, 15 * s, 2 * s); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#1d130d';
+  rr(x - 7 * s - step * 0.5, y + 19 * s, 7 * s, 4 * s, 2 * s); ctx.fill();
+  rr(x + 0.5 * s + step * 0.5, y + 19 * s, 7 * s, 4 * s, 2 * s); ctx.fill();
+
+  // Back arm
+  ctx.fillStyle = dk; rr(x - 12 * s + step * 0.4, y - 6 * s, 4.5 * s, 14 * s, 2 * s); ctx.fill();
+
+  // Torso with side shading and highlight
+  const tg = ctx.createLinearGradient(x - 9 * s, 0, x + 9 * s, 0);
+  tg.addColorStop(0, shade(o.shirt, 30)); tg.addColorStop(0.55, o.shirt); tg.addColorStop(1, dk);
+  ctx.fillStyle = tg; rr(x - 9 * s, y - 8 * s, 18 * s, 20 * s, 5 * s); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#2b1d14'; ctx.fillRect(x - 9 * s, y + 8 * s, 18 * s, 2.5 * s);
+  ctx.fillStyle = 'rgba(255,255,255,0.18)'; ctx.fillRect(x - 6 * s, y - 6 * s, 2 * s, 14 * s);
+
+  // Front arm and hand
+  const reach = (o.lunge || 0) * 9 * s;
+  const sw = -step * 0.4 + reach;
+  ctx.fillStyle = o.shirt; rr(x + 7.5 * s + sw, y - 6 * s, 4.5 * s, 14 * s, 2 * s); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = sk; ctx.beginPath(); ctx.arc(x + 9.75 * s + sw, y + 9 * s, 2.6 * s, 0, Math.PI * 2); ctx.fill();
+
+  // Head with radial shading
+  const hg = ctx.createRadialGradient(x - 3 * s, hy - 3 * s, 1, x, hy, 10 * s);
+  hg.addColorStop(0, shade(sk, 35)); hg.addColorStop(1, shade(sk, -15));
+  ctx.fillStyle = hg; ctx.beginPath(); ctx.arc(x, hy, 9.5 * s, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+  if (o.hair) {
+    ctx.fillStyle = o.hair;
+    ctx.beginPath(); ctx.arc(x, hy - 1 * s, 9.8 * s, Math.PI * 1.05, Math.PI * 1.95);
+    ctx.lineTo(x + 9 * s * fr, hy + 1 * s);
+    ctx.quadraticCurveTo(x, hy - 3 * s, x - 9 * s * fr, hy + 1 * s);
+    ctx.closePath(); ctx.fill();
+  }
+  if (o.hat === 'bandana') {
+    ctx.fillStyle = '#c0392b';
+    ctx.beginPath(); ctx.arc(x, hy, 9.8 * s, Math.PI * 1.1, Math.PI * 1.9); ctx.lineTo(x, hy - 2 * s); ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(x - 9 * s * fr, hy - 2 * s); ctx.lineTo(x - 15 * s * fr, hy + 2 * s);
+    ctx.lineTo(x - 12 * s * fr, hy + 5 * s); ctx.lineTo(x - 8 * s * fr, hy + 1 * s); ctx.fill();
+  } else if (o.hat === 'turban') {
+    ctx.fillStyle = '#f5f0e1';
+    ctx.beginPath(); ctx.ellipse(x, hy - 5 * s, 10.5 * s, 6 * s, 0, Math.PI, 0); ctx.fill();
+    ctx.fillStyle = '#d4a017'; ctx.fillRect(x - 10 * s, hy - 5 * s, 20 * s, 2.5 * s);
+  } else if (o.hat === 'ice') {
+    ctx.fillStyle = '#e8fbff'; ctx.beginPath();
+    ctx.moveTo(x - 11 * s, hy - 2 * s); ctx.lineTo(x - 6 * s, hy - 12 * s); ctx.lineTo(x, hy - 7 * s);
+    ctx.lineTo(x + 6 * s, hy - 13 * s); ctx.lineTo(x + 11 * s, hy - 2 * s); ctx.closePath(); ctx.fill();
+  }
+
+  // Eyes with iris and highlight
+  const look = Math.cos(o.face) * 1.5 * s, ey = hy + 0.5 * s;
+  for (const ex of [-3.5, 3.5]) {
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.ellipse(x + ex * s + look, ey, 2.3 * s, 2.6 * s * blink, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#1a1a1a'; ctx.beginPath(); ctx.arc(x + ex * s + look * 1.3, ey + 0.3 * s, 1.3 * s, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(x + ex * s + look * 1.3 - 0.5 * s, ey - 0.2 * s, 0.5 * s, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.strokeStyle = o.hair || '#2a1a10'; ctx.lineWidth = 1.4 * s;
+  ctx.beginPath();
+  ctx.moveTo(x - 6 * s, ey - 4 * s); ctx.lineTo(x - 1.5 * s, ey - 4.5 * s);
+  ctx.moveTo(x + 1.5 * s, ey - 4.5 * s); ctx.lineTo(x + 6 * s, ey - 4 * s);
+  ctx.stroke();
+  ctx.strokeStyle = 'rgba(80,30,20,0.7)'; ctx.lineWidth = 1.2 * s;
+  ctx.beginPath(); ctx.arc(x + look * 0.5, hy + 4 * s, 2 * s, 0.2, Math.PI - 0.2); ctx.stroke();
+
+  // Casting arm and glowing palm
+  if (o.cast) {
+    const c = o.cast, k = Math.sin(c.p * Math.PI);
+    const sx = x + 7.5 * s, sy = y - 4 * s, L = (12 + 6 * k) * s;
+    const hx2 = sx + Math.cos(o.face) * L, hy2 = sy + Math.sin(o.face) * L;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = o.shirt; ctx.lineWidth = 5 * s;
+    ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(hx2, hy2); ctx.stroke();
+    ctx.fillStyle = sk; ctx.beginPath(); ctx.arc(hx2, hy2, 2.8 * s, 0, Math.PI * 2); ctx.fill();
+    const R = (9 + 9 * k) * s;
+    const gr = ctx.createRadialGradient(hx2, hy2, 1, hx2, hy2, R);
+    gr.addColorStop(0, '#ffffff'); gr.addColorStop(0.35, c.g); gr.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.globalAlpha = 0.9; ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(hx2, hy2, R, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+
+  // Sword (colour and length come from the equipped sword)
+  if (o.sword) {
+    const S = o.sword;
+    const hx = x + 9.75 * s + sw, hyy = y + 9 * s, len = S.len;
+    const sa = o.swordAng !== undefined ? o.swordAng : o.face;
+    const ex = hx + Math.cos(sa) * len, ey2 = hyy + Math.sin(sa) * len;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = 'rgba(0,0,0,0.35)'; ctx.lineWidth = 6;
+    ctx.beginPath(); ctx.moveTo(hx, hyy); ctx.lineTo(ex, ey2); ctx.stroke();
+    const bl = ctx.createLinearGradient(hx, hyy, ex, ey2);
+    bl.addColorStop(0, S.e); bl.addColorStop(0.5, S.b); bl.addColorStop(1, S.e);
+    ctx.strokeStyle = bl; ctx.lineWidth = 3.5;
+    ctx.beginPath(); ctx.moveTo(hx, hyy); ctx.lineTo(ex, ey2); ctx.stroke();
+    ctx.strokeStyle = o.glow; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(hx, hyy); ctx.lineTo(ex, ey2); ctx.stroke();
+  }
+}
+
+function nameTag(x, y, text, color, pct, barColor) {
+  ctx.font = 'bold 12px Arial'; ctx.textAlign = 'center';
+  const w = Math.max(70, ctx.measureText(text).width + 16);
+  ctx.fillStyle = 'rgba(0,0,0,0.55)'; rr(x - w / 2, y - 58, w, 18, 6); ctx.fill();
+  ctx.fillStyle = color; ctx.fillText(text, x, y - 45);
+  ctx.fillStyle = 'rgba(0,0,0,0.6)'; rr(x - 22, y - 36, 44, 6, 3); ctx.fill();
+  if (pct > 0.01) { ctx.fillStyle = barColor; rr(x - 22, y - 36, 44 * clamp(pct, 0, 1), 6, 3); ctx.fill(); }
+}
+
+function drawEnemy(e) {
+  const s = e.scale, bob = e.stun > 0 ? 0 : Math.abs(Math.sin(e.walk)) * 1.5 * s;
+  const x = e.x, y = e.y - bob;
+  if (e.boss) {
+    ctx.strokeStyle = 'rgba(255,200,80,' + (0.4 + 0.2 * Math.sin(time * 4)) + ')';
+    ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(e.x, e.y + 22 * s, 22 * s, 8 * s, 0, 0, Math.PI * 2); ctx.stroke();
+  }
+  drawHuman(x, y, {
+    scale: s, face: Math.atan2(me.y - e.y, me.x - e.x), walk: e.stun > 0 ? 0 : e.walk, seed: e.slot || 0, lunge: e.atk > 0.6 ? (e.atk - 0.6) / 0.6 : 0,
+    busy: e.stun > 0, glow: '#ffffff', sword: null,
+    skin: e.pal.skin, hair: e.pal.hair, shirt: e.pal.shirt, pants: e.pal.pants, hat: e.pal.hat
+  });
+  if (e.flash > 0) {
+    ctx.globalAlpha = Math.min(1, e.flash * 3); ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(x, y - 4 * s, 22 * s, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+  const label = (e.boss ? 'BOSS ' : '') + e.name + ' Lv ' + e.lv;
+  nameTag(x, y - 20 * s, label, e.boss ? '#ffd34d' : '#ffffff', e.hp / e.maxHp, e.boss ? '#ff8a3d' : '#e74c3c');
+}
+
+function drawQuestGiver() {
+  const x = QUEST_POS.x, y = QUEST_POS.y;
+  drawHuman(x, y, {
+    scale: 1.05, face: me.name ? Math.atan2(me.y - y, me.x - x) : 0, walk: 0, busy: false,
+    glow: '#ffe066', sword: null, skin: '#e6b98e', hair: '#d9d9d9', shirt: '#2e7d5b', pants: '#3d3a2e', hat: 'none'
+  });
+  const st = me.q < QUESTS.length ? me.qs : 'done';
+  if (st === 'idle' || st === 'ready') {
+    const bob = Math.sin(time * 4) * 3;
+    ctx.font = 'bold 22px Arial'; ctx.textAlign = 'center';
+    ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(0,0,0,0.6)';
+    const mark = st === 'ready' ? '?' : '!';
+    ctx.strokeText(mark, x, y - 84 + bob);
+    ctx.fillStyle = st === 'ready' ? '#ffe066' : '#ffffff';
+    ctx.fillText(mark, x, y - 84 + bob);
+  }
+  nameTag(x, y - 20, 'Elder Rowan', '#ffe066', 0, '#fff');
+}
+
+function drawPlayer() {
+  const F = FRUITS[me.fruit], tf = me.tfT > 0, v = tf ? F.tf.v : '';
+  const f = Math.sin(time * 8);
+  ctx.save();
+  if (v === 'wings') {
+    for (const sd of [-1, 1]) {
+      ctx.fillStyle = 'rgba(60,15,25,0.85)';
+      ctx.beginPath(); ctx.moveTo(me.x + sd * 6, me.y - 6);
+      ctx.quadraticCurveTo(me.x + sd * 36, me.y - 30 - f * 14, me.x + sd * 30, me.y + 10);
+      ctx.lineTo(me.x + sd * 6, me.y + 4); ctx.closePath(); ctx.fill();
+    }
+  } else if (v === 'tails') {
+    for (let i = 0; i < 3; i++) {
+      ctx.strokeStyle = i === 1 ? '#fff3c8' : F.c; ctx.lineWidth = 6; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(me.x, me.y + 6);
+      ctx.quadraticCurveTo(me.x - 30 - i * 6, me.y - 4 + f * 4, me.x - 18 - i * 10, me.y - 22 + i * 8 + f * 3);
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+  if (tf) {
+    ctx.strokeStyle = F.g; ctx.globalAlpha = 0.5 + 0.2 * f; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.ellipse(me.x, me.y + 20, 24 + f * 3, 9 + f, 0, 0, Math.PI * 2); ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+  const m1 = anim.m1.t > 0 ? anim.m1 : null;
+  const swordAng = m1 ? aim + m1.dir * (-m1.arc / 2 + m1.arc * (1 - m1.t / m1.max)) : undefined;
+  const cast = anim.cast.t > 0 ? { p: 1 - anim.cast.t / anim.cast.max, g: anim.cast.g } : null;
+  drawHuman(me.x, me.y, {
+    scale: 1, face: aim, skin: '#f1c7a0', hair: '#2b1b10', shirt: F.c, pants: '#2c3e50',
+    walk: me.moving ? me.walk : 0, busy: me.combo.timer > 0, glow: F.g, sword: SWORDS[me.sword] || SWORDS.wood,
+    swordAng, cast
+  });
+  if (v === 'horns') {
+    ctx.fillStyle = F.g;
+    for (const sd of [-1, 1]) { ctx.beginPath(); ctx.moveTo(me.x + sd * 4, me.y - 30); ctx.lineTo(me.x + sd * 9, me.y - 42); ctx.lineTo(me.x + sd * 7, me.y - 28); ctx.fill(); }
+  } else if (v === 'halo') {
+    ctx.strokeStyle = '#ffe98a'; ctx.lineWidth = 3; ctx.shadowColor = '#ffe98a'; ctx.shadowBlur = 12;
+    ctx.beginPath(); ctx.ellipse(me.x, me.y - 40, 11, 3.5, 0, 0, Math.PI * 2); ctx.stroke(); ctx.shadowBlur = 0;
+  }
+  nameTag(me.x, me.y - 20, me.name + '  Lv ' + me.level, '#ffd34d', me.hp / me.maxHp, '#2ecc71');
+}
+
+function drawM1(f, p) {
+  const al = 1 - p, big = f.big, dir = f.dir;
+  const start = f.a - dir * f.arc / 2;
+  const head = start + dir * f.arc * p;
+  ctx.lineCap = 'round';
+  if (f.k === 'slash' || f.k === 'claw' || f.k === 'fist') {
+    // Fading trail behind the blade
+    for (let i = 0; i < 5; i++) {
+      let tail = head - dir * 0.22 * i;
+      if (dir * (tail - start) < 0) tail = start;
+      ctx.globalAlpha = al * (1 - i / 5) * 0.75;
+      ctx.strokeStyle = i === 0 ? '#ffffff' : f.c;
+      ctx.lineWidth = (big ? 20 : 14) * (1 - i * 0.14);
+      ctx.shadowColor = f.g; ctx.shadowBlur = 14;
+      ctx.beginPath(); ctx.arc(f.x, f.y, f.r, tail, head, dir < 0); ctx.stroke();
+    }
+    // Bright tip of the blade
+    const hx = f.x + Math.cos(head) * f.r, hy = f.y + Math.sin(head) * f.r;
+    ctx.globalAlpha = al; ctx.fillStyle = '#ffffff'; ctx.shadowColor = f.g; ctx.shadowBlur = 18;
+    ctx.beginPath(); ctx.arc(hx, hy, (big ? 6 : 4) * (1 - p * 0.5), 0, Math.PI * 2); ctx.fill();
+    // Sparks flying off the tip
+    ctx.fillStyle = f.g;
+    for (let k = 0; k < 3; k++) {
+      const sa = head + dir * (k * 0.45 + 0.2 + Math.random() * 0.2), sr = f.r * (0.92 + Math.random() * 0.12);
+      ctx.globalAlpha = al * 0.9;
+      ctx.beginPath(); ctx.arc(f.x + Math.cos(sa) * sr, f.y + Math.sin(sa) * sr, 2 + Math.random() * 1.5, 0, Math.PI * 2); ctx.fill();
+    }
+    if (f.k === 'fist') { // shockwave ring for fist hits
+      ctx.globalAlpha = al * 0.8; ctx.strokeStyle = f.c; ctx.lineWidth = 8 * al + 1;
+      ctx.beginPath(); ctx.arc(f.x, f.y, f.r * (0.3 + 0.7 * p), 0, Math.PI * 2); ctx.stroke();
+    }
+  } else if (f.k === 'pierce') {
+    const L = f.r * (p < 0.5 ? p * 2 : 1), sx = f.x + Math.cos(f.a) * 20, sy = f.y + Math.sin(f.a) * 20;
+    const ex = sx + Math.cos(f.a) * L, ey = sy + Math.sin(f.a) * L;
+    ctx.globalAlpha = al; ctx.strokeStyle = f.c; ctx.lineWidth = 8 * al + 1;
+    ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.stroke();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.stroke();
+  } else if (f.k === 'bolt') {
+    ctx.globalAlpha = al; ctx.strokeStyle = f.g; ctx.lineWidth = 4 * al + 1; ctx.beginPath(); ctx.moveTo(f.x, f.y);
+    for (let i = 1; i <= 6; i++) {
+      const t = i / 6 * f.r * 0.9;
+      ctx.lineTo(f.x + Math.cos(f.a) * t + (Math.random() - 0.5) * 18, f.y + Math.sin(f.a) * t + (Math.random() - 0.5) * 18);
+    }
+    ctx.stroke();
+  } else if (f.k === 'star') {
+    ctx.globalAlpha = al; ctx.strokeStyle = f.g; ctx.lineWidth = 3 * al + 1;
+    const r1 = f.r * (0.3 + 0.7 * p);
+    for (let i = 0; i < 8; i++) {
+      const a = i * Math.PI / 4 + p * 2;
+      ctx.beginPath(); ctx.moveTo(f.x + Math.cos(a) * r1 * 0.4, f.y + Math.sin(a) * r1 * 0.4);
+      ctx.lineTo(f.x + Math.cos(a) * r1, f.y + Math.sin(a) * r1); ctx.stroke();
+    }
+    ctx.strokeStyle = f.c; ctx.lineWidth = 8 * al + 1;
+    ctx.beginPath(); ctx.arc(f.x, f.y, r1 * 0.6, 0, Math.PI * 2); ctx.stroke();
+  }
+  ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+}
+
+function drawEffects() {
+  ctx.lineCap = 'round';
+  for (const f of effects) {
+    const p = 1 - f.life / f.max;
+    if (f.t === 'm1') drawM1(f, p);
+    else if (f.t === 'sk') {
+      ctx.globalAlpha = 1 - p; ctx.shadowColor = f.g; ctx.shadowBlur = 18;
+      if (f.sh === 'wave') {
+        ctx.save(); ctx.translate(f.x, f.y); ctx.rotate(f.a);
+        ctx.fillStyle = f.c; ctx.globalAlpha = (1 - p) * 0.6; ctx.fillRect(0, -45, f.r * (0.3 + 0.7 * p), 90);
+        ctx.restore();
+      } else {
+        const R = f.sh === 'pull' ? f.r * (1 - p * 0.6) : f.r * (0.25 + 0.75 * p);
+        ctx.strokeStyle = f.c; ctx.lineWidth = 8 * (1 - p) + 1;
+        ctx.beginPath(); ctx.arc(f.x, f.y, R, 0, Math.PI * 2); ctx.stroke();
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 3 * (1 - p) + 1;
+        ctx.beginPath(); ctx.arc(f.x, f.y, R * 0.7, 0, Math.PI * 2); ctx.stroke();
+        for (let k = 0; k < 8; k++) {
+          const a = k * Math.PI / 4 + p * 1.5;
+          ctx.strokeStyle = f.g; ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(f.x + Math.cos(a) * R * 0.8, f.y + Math.sin(a) * R * 0.8);
+          ctx.lineTo(f.x + Math.cos(a) * R * 1.1, f.y + Math.sin(a) * R * 1.1);
+          ctx.stroke();
+        }
+      }
+      ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+    } else if (f.t === 'beam') {
+      ctx.globalAlpha = 1 - p; ctx.shadowColor = f.g; ctx.shadowBlur = 14;
+      ctx.strokeStyle = f.g; ctx.lineWidth = 6 * (1 - p) + 2;
+      ctx.beginPath(); ctx.moveTo(f.x1, f.y1);
+      for (let i = 1; i < 8; i++) {
+        const t = i / 8;
+        ctx.lineTo(f.x1 + (f.x2 - f.x1) * t + (Math.random() - 0.5) * 16, f.y1 + (f.y2 - f.y1) * t + (Math.random() - 0.5) * 16);
+      }
+      ctx.lineTo(f.x2, f.y2); ctx.stroke();
+      ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+    }
+  }
+}
+
+// Boss telegraphs: dashed rings that fill up before a burst, and lingering pools
+function drawHazards() {
+  for (const h of hazards) {
+    if (!onScreen(h.x, h.y, h.r + 40)) continue;
+    if (h.type === 'pool') {
+      const pulse = 0.5 + 0.5 * Math.sin(time * 6);
+      ctx.globalAlpha = 0.22 + 0.1 * pulse; ctx.fillStyle = h.c;
+      ctx.beginPath(); ctx.arc(h.x, h.y, h.r, 0, Math.PI * 2); ctx.fill();
+      ctx.globalAlpha = 0.7; ctx.strokeStyle = h.g; ctx.lineWidth = 3; ctx.setLineDash([10, 8]);
+      ctx.beginPath(); ctx.arc(h.x, h.y, h.r, 0, Math.PI * 2); ctx.stroke();
+      ctx.setLineDash([]); ctx.globalAlpha = 1;
+    } else {
+      const p = 1 - h.t / h.max;
+      ctx.globalAlpha = 0.15 + 0.35 * p; ctx.fillStyle = h.c;
+      ctx.beginPath(); ctx.arc(h.x, h.y, h.r * (0.6 + 0.4 * p), 0, Math.PI * 2); ctx.fill();
+      ctx.globalAlpha = 0.9; ctx.strokeStyle = h.g; ctx.lineWidth = 3; ctx.setLineDash([8, 6]);
+      ctx.beginPath(); ctx.arc(h.x, h.y, h.r, 0, Math.PI * 2); ctx.stroke();
+      ctx.setLineDash([]); ctx.globalAlpha = 1;
+    }
+  }
+}
+
+function drawBossLairs() {
+  for (const z of Object.keys(ZONES)) {
+    const b = ZONES[z].boss.pos;
+    ctx.strokeStyle = ZONES[z].color; ctx.globalAlpha = 0.35; ctx.lineWidth = 3; ctx.setLineDash([12, 12]);
+    ctx.beginPath(); ctx.arc(b.x, b.y, 350, 0, Math.PI * 2); ctx.stroke();
+    ctx.setLineDash([]); ctx.globalAlpha = 1;
+  }
+}
+function drawGachaMachine() {
+  const x = GACHA_POS.x, y = GACHA_POS.y;
+  ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.beginPath(); ctx.ellipse(x, y + 30, 34, 10, 0, 0, Math.PI * 2); ctx.fill();
+  const bg = ctx.createLinearGradient(x - 26, 0, x + 26, 0);
+  bg.addColorStop(0, '#4a1d5c'); bg.addColorStop(1, '#2a0f36');
+  ctx.fillStyle = bg; rr(x - 26, y - 4, 52, 32, 6); ctx.fill();
+  ctx.fillStyle = '#ffe066'; rr(x - 8, y + 8, 16, 4, 2); ctx.fill();
+  const dome = ctx.createRadialGradient(x - 6, y - 18, 4, x, y - 12, 26);
+  dome.addColorStop(0, 'rgba(255,255,255,0.9)'); dome.addColorStop(0.4, 'rgba(200,107,255,0.7)'); dome.addColorStop(1, 'rgba(90,30,120,0.8)');
+  ctx.fillStyle = dome; ctx.beginPath(); ctx.arc(x, y - 12, 24, 0, Math.PI * 2); ctx.fill();
+  const ang = time * 2;
+  ctx.fillStyle = '#ff9a2e'; ctx.beginPath(); ctx.arc(x + Math.cos(ang) * 4, y - 12 + Math.sin(ang) * 2, 7, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#ffe066'; ctx.font = 'bold 10px Arial'; ctx.textAlign = 'center'; ctx.fillText('GACHA', x, y + 22);
+  nameTag(x, y - 22, 'Fruit Gacha', '#e0b0ff', 0, '#fff');
+}
+function drawStoreKeeper() {
+  const x = STORE_POS.x, y = STORE_POS.y;
+  drawHuman(x, y, { scale: 1.02, face: me.name ? Math.atan2(me.y - y, me.x - x) : 0, walk: 0, busy: false,
+    glow: '#9fe3ff', sword: null, skin: '#d9a77b', hair: '#4a3a2a', shirt: '#2c3e50', pants: '#222831', hat: 'none' });
+  nameTag(x, y - 20, 'Stock Keeper', '#9fe3ff', 0, '#fff');
+}
+function drawSafeZone() {
+  const pulse = 0.5 + 0.5 * Math.sin(time * 2);
+  ctx.fillStyle = 'rgba(120,255,180,' + (0.10 + 0.05 * pulse) + ')';
+  ctx.beginPath(); ctx.arc(SAFE.x, SAFE.y, SAFE.r, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = 'rgba(160,255,200,0.85)'; ctx.lineWidth = 4; ctx.setLineDash([14, 10]);
+  ctx.beginPath(); ctx.arc(SAFE.x, SAFE.y, SAFE.r, 0, Math.PI * 2); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.font = 'bold 16px Georgia'; ctx.textAlign = 'center'; ctx.fillStyle = 'rgba(210,255,225,0.95)';
+  ctx.fillText('SAFE ZONE', SAFE.x, SAFE.y - SAFE.r + 30);
+}
+function drawClones() {
+  for (const c of clones) {
+    ctx.globalAlpha = 0.5 * Math.min(1, c.t);
+    drawHuman(c.x, c.y, { scale: 1, face: aim, walk: 0, busy: false, glow: c.g, sword: null,
+      skin: '#f1c7a0', hair: '#2b1b10', shirt: c.c, pants: '#2c3e50', hat: 'none' });
+    ctx.globalAlpha = 1;
+  }
+}
+
+function drawProjs() {
+  for (const p of projs) {
+    ctx.shadowColor = p.g; ctx.shadowBlur = 18;
+    ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(p.x, p.y, 12, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+}
+
+function drawEProjs() {
+  for (const p of eprojs) {
+    ctx.shadowColor = p.g; ctx.shadowBlur = 14;
+    ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(p.x, p.y, p.r * 0.4, 0, Math.PI * 2); ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+}
+
+function drawParts() {
+  for (const p of parts) {
+    ctx.globalAlpha = Math.max(0, p.life / p.max);
+    ctx.fillStyle = p.color;
+    ctx.fillRect(p.x - p.s / 2, p.y - p.s / 2, p.s, p.s);
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawTexts() {
+  ctx.textAlign = 'center';
+  for (const t of texts) {
+    ctx.globalAlpha = Math.max(0, t.life / t.max);
+    ctx.font = t.big ? 'bold 26px Arial' : 'bold 16px Arial';
+    ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(0,0,0,0.6)';
+    ctx.strokeText(t.t, t.x, t.y);
+    ctx.fillStyle = t.color; ctx.fillText(t.t, t.x, t.y);
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawShop() {
+  const x = SHOP_POS.x, y = SHOP_POS.y;
+  ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.beginPath(); ctx.ellipse(x, y + 36, 62, 12, 0, 0, Math.PI * 2); ctx.fill();
+  const wg = ctx.createLinearGradient(x - 50, 0, x + 50, 0);
+  wg.addColorStop(0, '#6b4220'); wg.addColorStop(0.5, '#a8743e'); wg.addColorStop(1, '#6b4220');
+  ctx.fillStyle = wg; ctx.fillRect(x - 50, y - 18, 100, 54);
+  ctx.strokeStyle = 'rgba(60,30,10,0.35)'; ctx.lineWidth = 1;
+  for (let i = 1; i < 4; i++) { ctx.beginPath(); ctx.moveTo(x - 50, y - 18 + i * 13.5); ctx.lineTo(x + 50, y - 18 + i * 13.5); ctx.stroke(); }
+  ctx.fillStyle = '#7a2418'; ctx.fillRect(x - 64, y - 34, 128, 5);
+  for (let i = 0; i < 8; i++) {
+    const ax = x - 62 + i * 15.5;
+    ctx.fillStyle = i % 2 ? '#fff4dc' : '#c0392b';
+    ctx.fillRect(ax, y - 29, 15.5, 13);
+    ctx.beginPath(); ctx.arc(ax + 7.75, y - 16, 7.75, 0, Math.PI); ctx.fill();
+  }
+  ctx.fillStyle = '#3a2212'; rr(x - 11, y + 12, 22, 22, 4); ctx.fill();
+  ctx.fillStyle = '#ffd34d'; ctx.beginPath(); ctx.arc(x + 6, y + 24, 1.6, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#2b1a0e'; rr(x - 25, y - 6, 50, 16, 4); ctx.fill();
+  ctx.fillStyle = '#ffd34d'; rr(x - 23, y - 4, 46, 12, 3); ctx.fill();
+  ctx.fillStyle = '#4a2c12'; ctx.font = 'bold 10px Georgia'; ctx.textAlign = 'center';
+  ctx.fillText('BAZAAR', x, y + 5);
+  for (const sd of [-1, 1]) {
+    const lx = x + sd * 52, ly = y + 2;
+    const lgw = ctx.createRadialGradient(lx, ly, 2, lx, ly, 16);
+    lgw.addColorStop(0, 'rgba(255,220,120,0.55)'); lgw.addColorStop(1, 'rgba(255,220,120,0)');
+    ctx.fillStyle = lgw; ctx.beginPath(); ctx.arc(lx, ly, 16, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#ffe066'; rr(lx - 3.5, ly - 5, 7, 10, 2); ctx.fill();
+  }
+}
+
+function drawVignette() {
+  const w = VW(), h = VH();
+  const v = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.35, w / 2, h / 2, Math.max(w, h) * 0.75);
+  v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,0.45)');
+  ctx.fillStyle = v; ctx.fillRect(0, 0, w, h);
+}
+
+function drawHUD() {
+  if (!me.name) return;
+  const k = clamp(Math.min(VW() / 900, VH() / 600), 0.6, 1);
+  ctx.save(); ctx.scale(k, k);
+  const F = FRUITS[me.fruit], S = SWORDS[me.sword] || SWORDS.wood, w = VW() / k, h = VH() / k;
+  ctx.textAlign = 'left';
+
+  // Player box (top-left)
+  ctx.fillStyle = 'rgba(8,14,28,0.72)'; rr(10, 10, 290, 160, 12); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 17px Arial'; ctx.fillText(me.name, 24, 36);
+  const maxed = me.level >= MAX_LEVEL;
+  ctx.fillStyle = '#ffd34d'; ctx.font = 'bold 14px Arial';
+  ctx.fillText('Lv ' + me.level + (maxed ? ' MAX' : ''), 200, 36);
+  ctx.fillStyle = '#2b2b2b'; rr(24, 46, 266, 14, 7); ctx.fill();
+  const hpPct = clamp(me.hp / me.maxHp, 0, 1);
+  if (hpPct > 0.01) { ctx.fillStyle = '#2ecc71'; rr(24, 46, 266 * hpPct, 14, 7); ctx.fill(); }
+  ctx.fillStyle = '#2b2b2b'; rr(24, 68, 266, 8, 4); ctx.fill();
+  const xpPct = maxed ? 1 : clamp(me.xp / xpNeeded(me.level), 0, 1);
+  if (xpPct > 0.01) { ctx.fillStyle = '#f1c40f'; rr(24, 68, 266 * xpPct, 8, 4); ctx.fill(); }
+  ctx.font = '13px Arial'; ctx.fillStyle = '#fff';
+  ctx.fillText('Beli: ' + fmt(me.beli), 24, 98);
+  const z = zoneAt(me.x, me.y);
+  ctx.fillText('Zone: ' + (inSafe(me.x, me.y) ? 'Safe Zone' : z ? ZONES[z].name : 'Open Sea'), 24, 116);
+  ctx.fillStyle = F.g; ctx.fillText('Fruit: ' + F.n + (isTouch ? '' : '  (T: change)'), 24, 134);
+  ctx.fillStyle = S.b; ctx.fillText('Sword: ' + S.n + '  (x' + S.dmg + ' damage)' + (S.ab ? '  [R] ' + (me.swCd > 0 ? Math.ceil(me.swCd) + 's' : 'ready') : ''), 24, 152);
+
+  // Quest tracker (top-right)
+  if (me.q < QUESTS.length) {
+    const Q = QUESTS[me.q];
+    ctx.fillStyle = 'rgba(8,14,28,0.72)'; rr(w - 300, 10, 290, 58, 12); ctx.fill();
+    ctx.fillStyle = '#ffe066'; ctx.font = 'bold 14px Arial'; ctx.fillText(Q.t, w - 288, 32);
+    ctx.fillStyle = '#fff'; ctx.font = '12px Arial';
+    const sub = me.qs === 'idle' ? (isTouch ? 'Talk to Elder Rowan (Quest button)' : 'Talk to Elder Rowan (press Q)')
+      : me.qs === 'active' ? 'Defeated ' + me.qp + ' / ' + Q.need
+      : (isTouch ? 'Complete! Tap Quest to claim' : 'Complete! Press Q to claim');
+    ctx.fillText(sub, w - 288, 53);
+  }
+  if (isAdmin) { ctx.textAlign = 'right'; ctx.fillStyle = '#ffc04d'; ctx.font = '13px Arial'; ctx.fillText('ADMIN (F2)', w - 14, 86); }
+
+  // Skill bar (PC only; touch devices use the on-screen buttons)
+  if (!isTouch) {
+    const slots = [{ l: 'M1', n: 'Combo', cd: me.combo.cd, max: 0.5, c: F.c }];
+    F.sk.forEach(s => slots.push({ l: s.k.toUpperCase(), n: s.n, cd: me.cds[s.k] || 0, max: s.cd, c: F.c }));
+    slots.push({ l: 'V', n: me.tfT > 0 ? F.tf.n + ' ' + Math.ceil(me.tfT) + 's' : F.tf.n, cd: me.tfT > 0 ? 0 : me.tfCd, max: 35, c: F.g });
+    const sw = 110, gap = 10, total = slots.length * sw + (slots.length - 1) * gap;
+    const x0 = (w - total) / 2, y0 = h - 86;
+    slots.forEach((s, i) => {
+      const x = x0 + i * (sw + gap);
+      ctx.fillStyle = 'rgba(8,14,28,0.78)'; rr(x, y0, sw, 66, 10); ctx.fill();
+      ctx.strokeStyle = s.c; ctx.lineWidth = 2; rr(x, y0, sw, 66, 10); ctx.stroke();
+      if (s.cd > 0) { ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(x + 2, y0 + 2, sw - 4, Math.min(66 * (s.cd / s.max), 62)); }
+      ctx.textAlign = 'left'; ctx.fillStyle = '#fff'; ctx.font = 'bold 13px Arial'; ctx.fillText(s.l, x + 8, y0 + 20);
+      ctx.font = '11px Arial'; ctx.fillText(s.n, x + 8, y0 + 40);
+      if (s.cd > 0) { ctx.fillStyle = '#ffe066'; ctx.font = 'bold 13px Arial'; ctx.fillText(s.cd.toFixed(1) + 's', x + 8, y0 + 58); }
+    });
+  }
+
+  // Proximity prompts
+  ctx.textAlign = 'center'; ctx.fillStyle = '#ffe066'; ctx.font = 'bold 16px Arial';
+  const yP = h - 100;
+  if (dist(me.x, me.y, SHOP_POS.x, SHOP_POS.y) < 120) ctx.fillText(isTouch ? 'Tap Shop to open the Grand Bazaar' : 'Press E to open the Grand Bazaar', w / 2, yP);
+  else if (dist(me.x, me.y, QUEST_POS.x, QUEST_POS.y) < 140 && !questOpen) ctx.fillText(isTouch ? 'Tap Quest to talk to Elder Rowan' : 'Press Q to talk to Elder Rowan', w / 2, yP);
+  else if (dist(me.x, me.y, GACHA_POS.x, GACHA_POS.y) < 140 && !gachaOpen) ctx.fillText(isTouch ? 'Tap Gacha to roll the Fruit Gacha' : 'Press G to roll the Fruit Gacha', w / 2, yP);
+  else if (dist(me.x, me.y, STORE_POS.x, STORE_POS.y) < 140 && !stockOpen) ctx.fillText(isTouch ? "Tap Stock to view the Stock Keeper's stock" : "Press Y to view the Stock Keeper's stock", w / 2, yP);
+
+  if (activeDuel && activeDuel.start) {
+    const left = Math.max(0, Math.ceil((DUEL_TIME - (Date.now() - activeDuel.start)) / 1000));
+    ctx.textAlign = 'center'; ctx.font = 'bold 18px Arial'; ctx.fillStyle = '#ff6b6b';
+    ctx.fillText('DUEL vs ' + activeDuel.opp + '  ' + left + 's', w / 2, 100);
+  }
+  if (noticeT > 0) {
+    ctx.textAlign = 'center'; ctx.font = 'bold 20px Arial';
+    const nw = ctx.measureText(notice).width + 30;
+    ctx.fillStyle = 'rgba(0,0,0,0.55)'; rr(w / 2 - nw / 2, 40, nw, 36, 10); ctx.fill();
+    ctx.fillStyle = '#ffe066'; ctx.fillText(notice, w / 2, 65);
+  }
+  if (me.flash > 0) { ctx.fillStyle = 'rgba(255,0,0,' + (me.flash * 0.8) + ')'; ctx.fillRect(0, 0, w, h); }
+  ctx.restore();
+}
+
+function draw() {
+  const sx = (Math.random() - 0.5) * shake * 2, sy = (Math.random() - 0.5) * shake * 2;
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, VW(), VH());
+  ctx.save();
+  ctx.translate(-cam.x + sx, -cam.y + sy);
+  ctx.drawImage(bg, 0, 0, W, H);
+
+  // Animated surf line around each island
+  const pulse = 0.5 + 0.5 * Math.sin(time * 2);
+  ctx.strokeStyle = 'rgba(255,255,255,' + (0.25 + 0.25 * pulse) + ')'; ctx.lineWidth = 8;
+  for (const I of ISLANDS) { blobPath(ctx, I, 1.08 + 0.02 * pulse); ctx.stroke(); }
+
+  drawSafeZone();
+  drawBossLairs();
+  drawShop();
+  drawQuestGiver();
+  drawGachaMachine();
+  drawStoreKeeper();
+  for (const d of deco) if (onScreen(d.x, d.y, 60)) drawDeco(d);
+  for (const e of enemies) if (!e.dead && onScreen(e.x, e.y, 60)) drawEnemy(e);
+  if (me.name) drawPlayer();
+  drawRemotePlayers();
+  drawClones();
+  drawHazards();
+  drawEffects();
+  drawProjs();
+  drawEProjs();
+  drawParts();
+  drawTexts();
+  ctx.restore();
+  drawVignette();
+  drawHUD();
+}
+
+// ================= TOUCH CONTROLS =================
+function setupJoy(el, side) {
+  const st = joy[side], knob = el.querySelector('.knob'), R = 60;
+  const place = t => {
+    const r = el.getBoundingClientRect();
+    const dx = t.clientX - (r.left + r.width / 2), dy = t.clientY - (r.top + r.height / 2);
+    const d = Math.hypot(dx, dy) || 1, m = Math.min(d, R);
+    st.x = dx / d * m / R; st.y = dy / d * m / R;
+    knob.style.transform = `translate(${dx / d * m}px, ${dy / d * m}px)`;
+  };
+  el.addEventListener('touchstart', e => {
+    e.preventDefault();
+    if (st.id !== null) return;
+    const t = e.changedTouches[0]; st.id = t.identifier; st.on = true; place(t);
+  }, { passive: false });
+  el.addEventListener('touchmove', e => {
+    e.preventDefault();
+    for (const t of e.changedTouches) if (t.identifier === st.id) place(t);
+  }, { passive: false });
+  const end = e => {
+    for (const t of e.changedTouches) if (t.identifier === st.id) {
+      st.id = null; st.on = false; st.x = 0; st.y = 0; knob.style.transform = '';
+    }
+  };
+  el.addEventListener('touchend', end);
+  el.addEventListener('touchcancel', end);
+}
+setupJoy(document.getElementById('joyL'), 'L');
+setupJoy(document.getElementById('joyR'), 'R');
+
+// Skill buttons and menu buttons send their key on tap
+document.querySelectorAll('#touchUI [data-k]').forEach(b => {
+  b.addEventListener('pointerdown', e => { e.preventDefault(); pressed.add(b.dataset.k); });
+});
+
+function syncTouchUI() {
+  if (!isTouch) return;
+  document.querySelectorAll('#touchUI .tb[data-k]').forEach(b => {
+    const k = b.dataset.k;
+    const cd = k === 'v' ? (me.tfT > 0 ? 0 : me.tfCd) : k === 'r' ? (me.swCd || 0) : (me.cds[k] || 0);
+    const s = b.querySelector('.cd');
+    s.textContent = cd > 0 ? cd.toFixed(1) : '';
+    s.style.visibility = cd > 0 ? 'visible' : 'hidden';
+  });
+}
+
+// Stop pinch-zoom and page bounce, but let panels and chat scroll
+document.addEventListener('gesturestart', e => e.preventDefault());
+document.addEventListener('touchmove', e => {
+  if (!e.target.closest || !e.target.closest('.panel,#admin,#chatBox')) e.preventDefault();
+}, { passive: false });
+
+// ================= LOOP =================
+let last = performance.now();
+function loop(now) {
+  const dt = Math.min(0.05, (now - last) / 1000);
+  last = now;
+  update(dt);
+  draw();
+  syncTouchUI();
+  pushPresence();
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+const chatIn = document.getElementById('chatIn');
+chatIn.addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); sendChat(chatIn.value); closeChat(); }
+  else if (e.key === 'Escape') closeChat();
+});
+document.getElementById('adCmdIn').addEventListener('keydown', e => { if (e.key === 'Enter') runConsole(); });
+window.addEventListener('storage', e => {
+  if (e.key === 'ol_chat') renderChat();
+  if (e.key === 'ol_reports' || e.key === 'ol_bans') renderAdminLists();
+  if (e.key && me.name && (e.key === 'ol_kick_' + me.name || e.key === 'ol_grants_' + me.name)) { checkKick(); applyPendingGrants(); }
+});
+setInterval(() => { checkKick(); applyPendingGrants(); }, 1000);
+setInterval(() => {
+  updateGachaTimer();
+  if (gachaOpen && !me.gachaPending && (gachaLeft() === 0) !== gachaReadyFlag) renderGacha();
+  if (stockOpen) {
+    const sig = currentStock(Date.now()).map(x => x.k + x.win).join(',');
+    if (sig !== stockSig) renderStock(); else updateStockTimers();
+  }
+}, 1000);
+</script>
+</body>
+</html>
