@@ -55,7 +55,7 @@ body.admin #menuGrid button.admin-only{display:block}
 #chatLog{color:#fff;font-size:13px;max-height:180px;min-height:40px;overflow:auto;display:flex;flex-direction:column;gap:3px;-webkit-overflow-scrolling:touch}
 #chatIn{width:100%;box-sizing:border-box;padding:9px;border-radius:8px;border:none;font-size:16px}
 
-/* ---------- Quest-tracker PvP chip (top-right) ---------- */
+/* ---------- PvP chip (top-right) ---------- */
 #pvpChip{right:10px;top:78px;padding:8px 14px;font-size:13px;border-radius:10px;border:1px solid;box-shadow:none;background:rgba(8,14,28,.85)}
 #pvpChip.off{color:#9fb4cc;border-color:rgba(159,180,204,.4)}
 #pvpChip.on{color:#ff8a8a;border-color:#ff5a5a;background:rgba(60,8,12,.85)}
@@ -70,7 +70,7 @@ body.admin #menuGrid button.admin-only{display:block}
 /* ---------- Panels ---------- */
 .panel{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(780px,94vw);max-height:86vh;max-height:86dvh;display:none;flex-direction:column;background:linear-gradient(180deg,#14284a,#0a1830);color:#f3ead2;border-radius:16px;border:1px solid #d9a441;box-shadow:0 24px 60px rgba(0,0,0,.6);overflow:hidden;z-index:9;font-family:Arial,sans-serif}
 #quest.panel{width:min(440px,92vw)}
-#pvp.panel{width:min(460px,94vw)}
+#pvp.panel{width:min(480px,94vw)}
 .sh-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 18px;background:linear-gradient(100deg,#7a2418,#b8731c 60%,#d9a441);border-bottom:1px solid #d9a441}
 .sh-head h3{margin:0;font-family:Georgia,'Times New Roman',serif;font-size:21px;color:#fff6dc}
 .sh-head p{margin:4px 0 0;font-size:13px;color:#ffe9b8}
@@ -115,12 +115,13 @@ body.admin #menuGrid button.admin-only{display:block}
 .pv-rules{font-size:12px;color:#9fb4cc;line-height:1.6;margin:10px 0 0}
 .pv-list{display:flex;flex-direction:column;gap:8px;padding:10px 18px 16px;overflow:auto;-webkit-overflow-scrolling:touch}
 .pv-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px}
-.pv-row .nm{flex:1;min-width:0;color:#fff6dc;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pv-row .nm small{display:block;color:#9fb4cc;font-size:12px}
-.pv-tag{font-size:11px;padding:3px 8px;border-radius:99px;font-weight:bold}
+.pv-row .nm{flex:1;min-width:0;color:#fff6dc;font-size:14px;overflow:hidden;text-overflow:ellipsis}
+.pv-row .nm small{display:block;color:#9fb4cc;font-size:12px;white-space:pre-line;margin-top:3px}
+.pv-tag{font-size:11px;padding:3px 8px;border-radius:99px;font-weight:bold;white-space:nowrap}
 .pv-tag.on{background:#ff5a5a;color:#fff}
 .pv-tag.off{background:rgba(255,255,255,.12);color:#9fb4cc}
 .pv-row .sh-btn{margin:0;padding:8px 12px;font-size:12px}
+.pv-mine{font-size:12px;color:#ffd166;line-height:1.6;padding:0 18px;white-space:pre-line}
 
 /* Duel popup */
 #duelBox{position:fixed;top:40%;left:50%;transform:translate(-50%,-50%);z-index:21;display:none;background:linear-gradient(180deg,#2a1420,#14101e);color:#fff;padding:20px 24px;border-radius:14px;border:1px solid #ff5a5a;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.6);width:min(320px,88vw);box-sizing:border-box}
@@ -195,7 +196,8 @@ body.touch #skills{grid-template-columns:repeat(3,66px)}
     <button data-m="stock">Stock (Y)</button>
     <button data-m="fruit">Fruit Vault (T)</button>
     <button data-m="chat">Chat</button>
-    <button data-m="pvp">PvP Arena (P)</button>
+    <button data-m="pvp">PvP Panel (P)</button>
+    <button data-m="arena">Go to PvP Arena</button>
     <button data-m="admin" class="admin-only">Admin (F2)</button>
   </div>
 </div>
@@ -272,13 +274,14 @@ body.touch #skills{grid-template-columns:repeat(3,66px)}
 
 <div id="pvp" class="panel">
   <div class="sh-head">
-    <div><h3>PvP Arena</h3><p>Duel other players for 60 seconds</p></div>
+    <div><h3>PvP Arena</h3><p>Duel other players in the arena island</p></div>
     <button class="sh-x" data-close="pvp">&times;</button>
   </div>
   <div class="pv-status">
     <button id="pvpBig" class="pv-big off">PvP is OFF</button>
-    <p class="pv-rules">Turn PvP on to be challenged and to challenge others. Players with PvP off cannot be duelled. Turning PvP off during a duel forfeits it.</p>
+    <p class="pv-rules">Turn PvP on, go to the arena island (top-right of the map), and duel. Both players must be inside the arena. Leaving the arena during a duel forfeits it.</p>
   </div>
+  <p id="pvMine" class="pv-mine"></p>
   <div id="pvList" class="pv-list"></div>
 </div>
 
@@ -384,12 +387,14 @@ const dbReady = initDB();
 const remote = {};
 let activeDuel = null;      // { id, opp, start, ending }
 let incomingDuel = null;    // { id, opp }
-let presenceRef = null, lastPresence = 0;
+let presenceRef = null, lastPresence = 0, presenceErrShown = false;
 let hitRef = null, hitListenId = null, seenHits = new Set();
 const DUEL_TIME = 60000;
 const ONLINE_MS = 15000;
 
 function pairKey(a, b) { return [a, b].sort().join('__'); }
+// Judged by this phone's own clock, so different phone clocks do not hide players
+function isOnline(r) { return !!r && performance.now() - (r.seen || 0) < ONLINE_MS; }
 
 function setupPresence() {
   const db = firebase.database();
@@ -398,13 +403,15 @@ function setupPresence() {
   db.ref('players').on('value', snap => {
     const all = snap.val() || {};
     for (const n in remote) if (!all[n]) delete remote[n];
+    const now = performance.now();
     for (const n in all) {
       if (n === me.name) continue;
-      if (!remote[n]) remote[n] = Object.assign({ dx: all[n].x, dy: all[n].y }, all[n]);
-      else Object.assign(remote[n], all[n]);
+      if (!remote[n]) remote[n] = { dx: all[n].x, dy: all[n].y };
+      Object.assign(remote[n], all[n], { seen: now });
     }
-  });
-  db.ref('duels').on('value', snap => onDuels(snap.val() || {}));
+  }, err => msg('Online list blocked by database rules: ' + err.message));
+  db.ref('duels').on('value', snap => onDuels(snap.val() || {}),
+    err => msg('Duels blocked by database rules: ' + err.message));
 }
 
 function pushPresence(force) {
@@ -413,7 +420,9 @@ function pushPresence(force) {
   if (!force && now - lastPresence < 120) return;
   lastPresence = now;
   presenceRef.set({ name: me.name, x: Math.round(me.x), y: Math.round(me.y), hp: Math.round(me.hp),
-    maxHp: me.maxHp, level: me.level, fruit: me.fruit, sword: me.sword, pvp: !!me.pvp, t: Date.now() });
+    maxHp: Math.round(me.maxHp), level: me.level, fruit: me.fruit, sword: me.sword, pvp: !!me.pvp,
+    act: me.act || null, t: Date.now() })
+    .catch(err => { if (!presenceErrShown) { presenceErrShown = true; msg('Online sync blocked: ' + err.message); } });
 }
 
 function onDuels(all) {
@@ -428,8 +437,13 @@ function onDuels(all) {
       incomingDuel = { id, opp };
       showDuelBox(opp);
     } else if (d.status === 'active') {
+      // Ignore stale duels left over from an old session
+      if (Date.now() - (d.start || 0) > DUEL_TIME + 10000) {
+        firebase.database().ref('duels/' + id).remove();
+        continue;
+      }
       if (!activeDuel || activeDuel.id !== id) {
-        activeDuel = { id, opp, start: d.start };
+        activeDuel = { id, opp, start: performance.now() };
         msg('Duel started vs ' + opp + '!');
       }
       listenHits(id);
@@ -445,18 +459,25 @@ function onDuels(all) {
 
 function challengeDuel(opp) {
   const r = remote[opp];
-  if (!r || Date.now() - (r.t || 0) > ONLINE_MS) return feedback(opp + ' is not online.');
-  if (!me.pvp) return feedback('Turn PvP on first (PvP Arena).');
+  if (!isOnline(r)) return feedback(opp + ' is not online.');
+  if (!me.pvp) return feedback('Turn PvP on first.');
   if (!r.pvp) return feedback(opp + ' has PvP turned off.');
   if (activeDuel) return feedback('You are already in a duel.');
+  if (!inArena(me.x, me.y)) return feedback('Go to the PvP Arena island to duel.');
+  if (!inArena(r.x, r.y)) return feedback(opp + ' is not in the PvP Arena.');
   firebase.database().ref('duels/' + pairKey(me.name, opp))
-    .set({ a: me.name, b: opp, status: 'pending', start: 0, winner: '' });
+    .set({ a: me.name, b: opp, status: 'pending', start: 0, winner: '' })
+    .catch(err => feedback('Duel blocked: ' + err.message));
   feedback('Duel request sent to ' + opp + '.');
 }
 
 function acceptDuel() {
   if (!incomingDuel) return;
-  if (!me.pvp) { declineDuel(); return; }
+  if (!me.pvp || !inArena(me.x, me.y)) {
+    declineDuel();
+    msg('Duel cancelled. Both players must be in the PvP Arena.');
+    return;
+  }
   firebase.database().ref('duels/' + pairKey(me.name, incomingDuel.opp))
     .update({ status: 'active', start: Date.now() });
   hideDuelBox();
@@ -484,7 +505,7 @@ function setPvp(on) {
   me.pvp = on;
   pushPresence(true);
   saveProgress();
-  msg(on ? 'PvP is ON. Other PvP players can duel you.' : 'PvP is OFF. You cannot be duelled.');
+  msg(on ? 'PvP is ON. Go to the arena to duel.' : 'PvP is OFF. You cannot be duelled.');
   updatePvpUI();
   renderPvp();
 }
@@ -500,10 +521,9 @@ function updatePvpUI() {
 
 // Attacker writes a hit; the victim's own game applies the damage
 function pvpStrike(mult, range) {
-  if (!activeDuel || !me.pvp || inSafe(me.x, me.y)) return;
+  if (!activeDuel || !me.pvp) return;
   const o = remote[activeDuel.opp];
   if (!o || dist(me.x, me.y, o.x, o.y) > range) return;
-  if (inSafe(o.x, o.y)) return;
   firebase.database().ref('duelhits/' + activeDuel.id).push({ to: activeDuel.opp, dmg: dmgFor(mult), by: me.name, ts: Date.now() });
 }
 
@@ -524,11 +544,11 @@ function listenHits(id) {
 }
 
 function takeHit(dmg, by) {
-  if (!activeDuel || !me.pvp || inSafe(me.x, me.y)) return;
+  if (!activeDuel || !me.pvp) return;
   me.hp -= dmg; me.flash = 0.25; addShake(4);
   texts.push({ x: me.x, y: me.y - 40, t: '-' + dmg, life: 0.8, max: 0.8, color: '#ff4d4d' });
   if (me.hp <= 0) {
-    me.hp = me.maxHp; me.x = SPAWN.x; me.y = SPAWN.y;
+    me.hp = me.maxHp; me.x = ARENA.x; me.y = ARENA.y + 40;
     endDuel(by);
   }
 }
@@ -541,10 +561,28 @@ function hideDuelBox() { document.getElementById('duelBox').style.display = 'non
 document.getElementById('duelYes').onclick = acceptDuel;
 document.getElementById('duelNo').onclick = declineDuel;
 
+// Show attacks other players make so you can see their moves
+function replayRemoteActs() {
+  for (const n in remote) {
+    const r = remote[n];
+    if (!r || !isOnline(r) || !r.act) continue;
+    if (r.lastActId === undefined) { r.lastActId = r.act.id; continue; }
+    if (r.act.id === r.lastActId) continue;
+    r.lastActId = r.act.id;
+    const a = r.act;
+    if (a.t === 'm1') {
+      effects.push({ t: 'm1', k: a.k, x: r.x, y: r.y, a: a.a, arc: a.arc, r: a.r, dir: a.dir, big: a.big,
+        life: 0.24, max: 0.24, c: a.c, g: a.g });
+    } else {
+      effects.push({ t: 'sk', sh: a.sh, x: r.x, y: r.y, r: a.r, a: a.a, life: 0.45, max: 0.45, c: a.c, g: a.g });
+    }
+  }
+}
+
 function drawRemotePlayers() {
   for (const n in remote) {
     const r = remote[n];
-    if (!r || Date.now() - (r.t || 0) > ONLINE_MS) continue;
+    if (!isOnline(r)) continue;
     const px = r.dx ?? r.x, py = r.dy ?? r.y;
     r.dx = px + (r.x - px) * 0.2;
     r.dy = py + (r.y - py) * 0.2;
@@ -557,12 +595,12 @@ function drawRemotePlayers() {
     drawHuman(r.dx, r.dy, { scale: 1, face: moving ? Math.atan2(r.y - r.dy, r.x - r.dx) : 0,
       skin: '#f1c7a0', hair: '#2b1b10', shirt: F.c, pants: '#2c3e50',
       walk: moving ? time * 8 : 0, busy: false, glow: F.g, sword: S, seed: 3 });
-    nameTag(r.dx, r.dy - 20, n + '  Lv ' + r.level + (r.pvp ? '  PvP' : ''), r.pvp ? '#ff9a9a' : '#9fe3ff', (r.hp || 0) / (r.maxHp || 1), '#2ecc71');
+    nameTag(r.dx, r.dy - 20, n + ' Lv ' + r.level + (r.pvp ? ' PvP' : ''),
+      r.pvp ? '#ff9a9a' : '#9fe3ff', (r.hp || 0) / (r.maxHp || 1), '#2ecc71');
   }
 }
 
 // ================= CONFIG =================
-// Admin accounts. Anyone who can open this file can read this, so keep it private.
 const ADMIN_ACCOUNTS = { 'Hari_sanjay': '20112012harisanjay' };
 const STORE_ACCOUNTS = 'ol_accounts';
 const saveKey = n => 'ol_save_' + n;
@@ -579,14 +617,23 @@ const mouse = { x: innerWidth / 2, y: innerHeight / 2, down: false };
 // ================= WORLD DATA =================
 const W = 3000, H = 3000;
 const SHOP_POS = { x: 1500, y: 1500 }, SPAWN = { x: 1500, y: 1700 }, QUEST_POS = { x: 1640, y: 1620 };
-const ISLANDS = [
-  { z: 'frost',  x: 1500, y: 380,  rx: 1050, ry: 420, ground: 'snow' },
-  { z: 'harbor', x: 1250, y: 1650, rx: 950,  ry: 800, ground: 'grass' },
-  { z: 'dunes',  x: 2600, y: 1500, rx: 480,  ry: 900, ground: 'sand' },
-  { z: 'magma',  x: 380,  y: 2600, rx: 520,  ry: 430, ground: 'rock' }
-];
 const GROUND = { snow: ['#f4fbff', '#9fd0ea', '#ffffff'], grass: ['#8bd96f', '#2f7f3a', '#1f5f2a'],
-                 sand: ['#f8e7b0', '#c9a050', '#a07a32'], rock: ['#4a332d', '#1d100e', '#ff6a2a'] };
+                 sand: ['#f8e7b0', '#c9a050', '#a07a32'], rock: ['#4a332d', '#1d100e', '#ff6a2a'],
+                 jungle: ['#5fd46b', '#1d5a2a', '#0f3d1c'], crystal: ['#f0e6ff', '#9b7fe0', '#ffffff'],
+                 thunder: ['#fff9c4', '#8d8a2e', '#fff7a1'], arena: ['#f6e3b4', '#c99a52', '#e8c98a'] };
+
+// The arena is an EMPTY island: no trees, no NPCs, no enemies, no spawns. Only players are here.
+const ARENA = { x: 2760, y: 230, rx: 185, ry: 165 };
+const ISLANDS = [
+  { z: 'frost',   x: 1500, y: 380,  rx: 1050, ry: 420, ground: 'snow' },
+  { z: 'harbor',  x: 1250, y: 1650, rx: 950,  ry: 800, ground: 'grass' },
+  { z: 'dunes',   x: 2600, y: 1500, rx: 480,  ry: 900, ground: 'sand' },
+  { z: 'magma',   x: 380,  y: 2600, rx: 520,  ry: 430, ground: 'rock' },
+  { z: 'jade',    x: 280,  y: 1150, rx: 230,  ry: 260, ground: 'jungle' },
+  { z: 'thunder', x: 1450, y: 2750, rx: 380,  ry: 200, ground: 'thunder' },
+  { z: 'crystal', x: 2650, y: 2700, rx: 300,  ry: 260, ground: 'crystal' },
+  { z: 'arena',   x: ARENA.x, y: ARENA.y, rx: ARENA.rx, ry: ARENA.ry, ground: 'arena' }
+];
 
 const ZONES = {
   harbor: { name: 'Harbor Isle', color: '#c0392b', count: 12, lvl: [1, 12],
@@ -604,28 +651,7 @@ const ZONES = {
   magma: { name: 'Magma Isle', color: '#ff5a1f', count: 10, lvl: [48, 70],
     mob:  { name: 'Lava Brute', hp: 900, dmg: 30, beli: 110, xp: 220, look: 'brute', scale: 1.15 },
     boss: { name: 'Magma Warlord', hp: 14000, dmg: 70, beli: 4000, xp: 4000, look: 'brute', scale: 2.4, lv: 75,
-            pos: { x: 380, y: 2600 }, abil: ['lavapool', 'meteor', 'slam'] } }
-};
-const ABIL_NAME = { cannon: 'Cannon Shot', slam: 'Tidal Slam', sandstorm: 'Sandstorm', burrow: 'Burrow Strike',
-                    shards: 'Ice Shards', blizzard: 'Blizzard', lavapool: 'Lava Pools', meteor: 'Meteor Rain' };
-
-const PAL = {
-  bandit: { skin: '#e0a777', hair: '#2a1a10', shirt: '#7a2e2e', pants: '#3b3b4a', hat: 'bandana' },
-  raider: { skin: '#c58b5a', hair: '#111111', shirt: '#d4a017', pants: '#8b5a2b', hat: 'turban' },
-  golem:  { skin: '#d6f1ff', hair: '#ffffff', shirt: '#6ec6ff', pants: '#3e7ca8', hat: 'ice' },
-  brute:  { skin: '#8a4b2a', hair: '#1a0a05', shirt: '#8e2b12', pants: '#2a1a14', hat: 'none' }
-};
-
-// ================= NEW ISLANDS, BOSSES AND MOBS =================
-GROUND.jungle = ['#5fd46b', '#1d5a2a', '#0f3d1c'];
-GROUND.crystal = ['#f0e6ff', '#9b7fe0', '#ffffff'];
-GROUND.thunder = ['#fff9c4', '#8d8a2e', '#fff7a1'];
-ISLANDS.push(
-  { z: 'jade',    x: 280,  y: 1150, rx: 230, ry: 260, ground: 'jungle' },
-  { z: 'thunder', x: 1450, y: 2750, rx: 380, ry: 200, ground: 'thunder' },
-  { z: 'crystal', x: 2650, y: 2700, rx: 300, ry: 260, ground: 'crystal' }
-);
-Object.assign(ZONES, {
+            pos: { x: 380, y: 2600 }, abil: ['lavapool', 'meteor', 'slam'] } },
   jade: { name: 'Jade Jungle', color: '#2ecc71', count: 8, lvl: [62, 80],
     mob:  { name: 'Jungle Savage', hp: 1800, dmg: 70, beli: 400, xp: 900, look: 'jungle', scale: 1.1 },
     boss: { name: 'Thorn Queen', hp: 30000, dmg: 90, beli: 8000, xp: 8000, look: 'jungle', scale: 2.2, lv: 85,
@@ -638,13 +664,23 @@ Object.assign(ZONES, {
     mob:  { name: 'Crystal Golem', hp: 5000, dmg: 110, beli: 650, xp: 1400, look: 'crystal', scale: 1.3 },
     boss: { name: 'Crystal Empress', hp: 70000, dmg: 140, beli: 25000, xp: 25000, look: 'crystal', scale: 2.4, lv: 125,
             pos: { x: 2650, y: 2700 }, r: 90, abil: ['shardrain', 'blizzard', 'thunder'] } }
-});
-Object.assign(ABIL_NAME, { vines: 'Thorn Vines', thunder: 'Thunder Strike', shardrain: 'Crystal Rain' });
-Object.assign(PAL, {
+};
+const ZONE_NAME = z => z === 'arena' ? 'PvP Arena' : (ZONES[z] ? ZONES[z].name : 'Open Sea');
+const inArena = (x, y) => dist(x, y, ARENA.x, ARENA.y) < ARENA.rx * 0.9 && dist(x, y, ARENA.x, ARENA.y) < ARENA.ry * 0.9 + 60;
+
+const ABIL_NAME = { cannon: 'Cannon Shot', slam: 'Tidal Slam', sandstorm: 'Sandstorm', burrow: 'Burrow Strike',
+                    shards: 'Ice Shards', blizzard: 'Blizzard', lavapool: 'Lava Pools', meteor: 'Meteor Rain',
+                    vines: 'Thorn Vines', thunder: 'Thunder Strike', shardrain: 'Crystal Rain' };
+
+const PAL = {
+  bandit: { skin: '#e0a777', hair: '#2a1a10', shirt: '#7a2e2e', pants: '#3b3b4a', hat: 'bandana' },
+  raider: { skin: '#c58b5a', hair: '#111111', shirt: '#d4a017', pants: '#8b5a2b', hat: 'turban' },
+  golem:  { skin: '#d6f1ff', hair: '#ffffff', shirt: '#6ec6ff', pants: '#3e7ca8', hat: 'ice' },
+  brute:  { skin: '#8a4b2a', hair: '#1a0a05', shirt: '#8e2b12', pants: '#2a1a14', hat: 'none' },
   jungle:  { skin: '#b5774a', hair: '#0f2a12', shirt: '#2e7d32', pants: '#4e3b1e', hat: 'bandana' },
   thunder: { skin: '#e8c39e', hair: '#f5e663', shirt: '#f1c40f', pants: '#3b3b4a', hat: 'none' },
   crystal: { skin: '#f3e9ff', hair: '#b39ddb', shirt: '#9c6bff', pants: '#4a2f8a', hat: 'ice' }
-});
+};
 
 function bossExtra(e, name, col, dmg) {
   if (name === 'vines') {
@@ -986,6 +1022,12 @@ bgCanvas.width = W * 0.5; bgCanvas.height = H * 0.5;
     const gg = c.createLinearGradient(0, I.y - I.ry, 0, I.y + I.ry);
     gg.addColorStop(0, G[0]); gg.addColorStop(1, G[1]);
     c.fillStyle = gg; blobPath(c, I, 0.96); c.fill();
+    if (I.z === 'arena') {
+      // Plain sand floor with a golden ring. Nothing else is drawn here.
+      c.strokeStyle = 'rgba(160,110,40,0.35)'; c.lineWidth = 3;
+      c.beginPath(); c.ellipse(I.x, I.y, I.rx * 0.8, I.ry * 0.8, 0, 0, Math.PI * 2); c.stroke();
+      continue;
+    }
     c.save(); blobPath(c, I, 0.96); c.clip();
     for (let i = 0; i < I.rx * I.ry / 400; i++) {
       c.fillStyle = G[2]; c.globalAlpha = rand(0.25, 0.6);
@@ -1008,7 +1050,7 @@ const DECO_TYPE = { frost: 'pine', dunes: 'cactus', harbor: 'palm', magma: 'rock
 const deco = [];
 for (let i = 0; i < 260 && deco.length < 170; i++) {
   const x = rand(40, W - 40), y = rand(40, H - 40), z = zoneAt(x, y);
-  if (!z || nearHub(x, y) || dist(x, y, SPAWN.x, SPAWN.y) < 90) continue;
+  if (!z || z === 'arena' || nearHub(x, y) || dist(x, y, SPAWN.x, SPAWN.y) < 90) continue;
   deco.push({ x, y, t: DECO_TYPE[z], s: rand(0.85, 1.3) });
 }
 deco.sort((a, b) => a.y - b.y);
@@ -1025,7 +1067,7 @@ const me = {
   q: 0, qp: 0, qs: 'idle', slowT: 0, shield: 0, shieldT: 0, buffT: 0, buffM: 1,
   vault: [], gachaNext: 0, gachaPending: null, stockBought: {}, noCd: false, pvp: false,
   facing: { x: 0, y: -1 }, cds: {},
-  combo: { step: 0, timer: 0, cd: 0 }, flash: 0, moving: false, walk: 0, tfT: 0, tfCd: 0, swCd: 0
+  combo: { step: 0, timer: 0, cd: 0 }, flash: 0, moving: false, walk: 0, tfT: 0, tfCd: 0, swCd: 0, act: null
 };
 
 function msg(t) { notice = t; noticeT = 3; }
@@ -1219,6 +1261,8 @@ function basicAttack() {
   effects.push({ t: 'm1', k: F.m1[idx], x: me.x, y: me.y, a: aim, arc, r: range, dir: idx % 2 ? -1 : 1,
     big: idx === 2, life: 0.24, max: 0.24, c: F.c, g: F.g });
   anim.m1 = { t: 0.24, max: 0.24, dir: idx % 2 ? -1 : 1, arc: arc };
+  me.act = { id: Date.now() + '_' + Math.random().toString(36).slice(2, 6), t: 'm1', k: F.m1[idx], a: aim, arc, r: range,
+    dir: idx % 2 ? -1 : 1, big: idx === 2, c: F.c, g: F.g };
   pvpStrike(mult, range + 16);
   let hitAny = false;
   for (const e of enemies) {
@@ -1244,6 +1288,7 @@ function useSkill(i) {
   }
   effects.push({ t: 'sk', sh: sk.sh, x: me.x, y: me.y, r: sk.r || 100, a: aim, life: 0.45, max: 0.45, c: col, g });
   anim.cast = { t: 0.45, max: 0.45, c: col, g };
+  me.act = { id: Date.now() + '_' + Math.random().toString(36).slice(2, 6), t: 'sk', sh: sk.sh || 'ring', a: aim, r: sk.r || 100, c: col, g };
   pvpStrike(sk.m || 1.5, sk.r || 100);
   burst(me.x, me.y, col, 12, 190, 0.4); addShake(2);
 
@@ -1411,8 +1456,7 @@ function saveProgress() { if (me.name) putSave(me.name, snapshot()); }
 
 // ================= PANEL + MENU HELPERS =================
 function setPanel(id, open) {
-  const el = document.getElementById(id);
-  el.style.display = open ? 'flex' : 'none';
+  document.getElementById(id).style.display = open ? 'flex' : 'none';
 }
 function nearOK(p, r, label) {
   if (dist(me.x, me.y, p.x, p.y) < r) return true;
@@ -1424,7 +1468,6 @@ function toggleMenu(force) {
   const open = typeof force === 'boolean' ? force : grid.classList.contains('hide');
   grid.classList.toggle('hide', !open);
   document.getElementById('menuTog').textContent = open ? 'Close Menu' : 'Menu';
-  // Highlight buttons whose panel is currently open
   document.querySelectorAll('#menuGrid button').forEach(b => {
     const m = b.dataset.m;
     const on = (m === 'shop' && shopOpen) || (m === 'quest' && questOpen) || (m === 'gacha' && gachaOpen) ||
@@ -1441,6 +1484,11 @@ function menuAct(a) {
   else if (a === 'fruit') toggleStore();
   else if (a === 'chat') toggleChat();
   else if (a === 'pvp') togglePvpPanel();
+  else if (a === 'arena') {
+    if (activeDuel) return msg('Finish your duel first');
+    me.x = ARENA.x; me.y = ARENA.y + 40;
+    msg('Welcome to the PvP Arena. Turn PvP on and duel!');
+  }
   else if (a === 'admin') toggleAdmin();
   toggleMenu(false);
 }
@@ -1467,7 +1515,6 @@ document.getElementById('pvpChip').onclick = () => setPvp(!me.pvp);
 document.getElementById('pvpBig').onclick = () => setPvp(!me.pvp);
 
 // ================= SHOP =================
-let shopPanelOpen = false;
 function toggleShop(force) {
   shopOpen = typeof force === 'boolean' ? force : !shopOpen;
   setPanel('shop', shopOpen);
@@ -1599,22 +1646,24 @@ function togglePvpPanel(force) {
 }
 function renderPvp() {
   updatePvpUI();
+  const F0 = FRUITS[me.fruit] || FRUITS.ember;
+  document.getElementById('pvMine').textContent = 'Your fruit: ' + F0.n + '\n' + F0.sk.map(s => s.k.toUpperCase() + ' ' + s.n).join('  |  ');
   const list = document.getElementById('pvList');
   list.replaceChildren();
-  const now = Date.now();
-  const names = Object.keys(remote).filter(n => now - (remote[n].t || 0) <= ONLINE_MS);
+  const names = Object.keys(remote).filter(n => isOnline(remote[n])).sort();
   if (!names.length) {
     const p = document.createElement('p'); p.className = 'sh-foot'; p.style.border = 'none';
     p.textContent = 'No other players are online right now.';
     list.append(p); return;
   }
-  names.sort().forEach(n => {
-    const r = remote[n];
+  names.forEach(n => {
+    const r = remote[n], F = FRUITS[r.fruit] || FRUITS.ember;
     const row = document.createElement('div'); row.className = 'pv-row';
     const nm = document.createElement('div'); nm.className = 'nm';
-    nm.textContent = n;
-    const sub = document.createElement('small'); sub.textContent = 'Level ' + r.level + '  |  ' + (FRUITS[r.fruit] ? FRUITS[r.fruit].n : '');
-    nm.append(sub);
+    nm.textContent = n + '  (Lv ' + r.level + ')';
+    const moves = document.createElement('small');
+    moves.textContent = F.n + '\n' + F.sk.map(s => s.k.toUpperCase() + ' ' + s.n).join('  |  ');
+    nm.append(moves);
     const tag = document.createElement('span');
     tag.className = 'pv-tag ' + (r.pvp ? 'on' : 'off');
     tag.textContent = r.pvp ? 'PvP ON' : 'PvP OFF';
@@ -2268,8 +2317,7 @@ addEventListener('mouseup', () => { mouse.down = false; });
 addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
 canvas.addEventListener('contextmenu', e => e.preventDefault());
 
-// ================= TOUCH: drag to move, tap/hold to attack =================
-// Drag anywhere to walk in that direction. A press without dragging attacks toward the touch point.
+// ================= TOUCH: drag to move, press to attack =================
 canvas.addEventListener('pointerdown', e => {
   if (e.pointerType !== 'touch' || !me.name) return;
   if (TOUCH.id !== null) return;
@@ -2305,7 +2353,6 @@ document.querySelectorAll('#skills [data-k]').forEach(b => {
 
 function syncDom() {
   if (!me.name) return;
-  // Player box
   document.getElementById('pName').textContent = me.name;
   document.getElementById('pLv').textContent = 'Lv ' + me.level + (me.level >= MAX_LEVEL ? ' MAX' : '');
   document.getElementById('hpF').style.width = (clamp(me.hp / me.maxHp, 0, 1) * 100) + '%';
@@ -2314,22 +2361,21 @@ function syncDom() {
   const F = FRUITS[me.fruit], S = SWORDS[me.sword] || SWORDS.wood;
   const z = zoneAt(me.x, me.y);
   document.getElementById('iBeli').textContent = 'Beli: ' + fmt(me.beli);
-  document.getElementById('iZone').textContent = 'Zone: ' + (inSafe(me.x, me.y) ? 'Safe Zone' : z ? ZONES[z].name : 'Open Sea');
+  document.getElementById('iZone').textContent = 'Zone: ' + (inSafe(me.x, me.y) ? 'Safe Zone' : z ? ZONE_NAME(z) : 'Open Sea');
   document.getElementById('iFruit').textContent = 'Fruit: ' + F.n;
   document.getElementById('iFruit').style.color = F.g;
   document.getElementById('iSword').textContent = 'Sword: ' + S.n + ' (x' + S.dmg + ')';
   document.getElementById('iSword').style.color = S.b;
   updatePvpUI();
 
-  // Ability buttons (phones)
   if (isTouch) {
     document.querySelectorAll('#skills .tb').forEach(b => {
       const k = b.dataset.k;
-      let name = '', cd = 0, max = 1;
+      let name = '', cd = 0;
       const idx = ['z', 'x', 'c', 'f'].indexOf(k);
-      if (idx >= 0) { const sk = F.sk[idx]; name = sk.n; cd = me.cds[k] || 0; max = sk.cd; }
-      else if (k === 'v') { name = F.tf.n; cd = me.tfT > 0 ? 0 : me.tfCd; max = 35; }
-      else if (k === 'r') { name = S.ab ? 'Dominion' : 'No ability'; cd = me.swCd || 0; max = S.abCd || 1; }
+      if (idx >= 0) { const sk = F.sk[idx]; name = sk.n; cd = me.cds[k] || 0; }
+      else if (k === 'v') { name = F.tf.n; cd = me.tfT > 0 ? 0 : me.tfCd; }
+      else if (k === 'r') { name = S.ab ? 'Dominion' : 'No ability'; cd = me.swCd || 0; }
       b.querySelector('.nm').textContent = name;
       b.classList.toggle('dis', cd > 0);
       const s = b.querySelector('.cd');
@@ -2347,6 +2393,7 @@ const touchFx = { t: 0 };
 // ================= UPDATE =================
 function update(dt) {
   time += dt;
+  replayRemoteActs();
   if (!me.name) { pressed.clear(); return; }
 
   let mx = 0, my = 0;
@@ -2380,14 +2427,21 @@ function update(dt) {
   me.swCd = Math.max(0, (me.swCd || 0) - dt);
   anim.m1.t = Math.max(0, anim.m1.t - dt);
   anim.cast.t = Math.max(0, anim.cast.t - dt);
-  if (activeDuel && activeDuel.start && Date.now() - activeDuel.start > DUEL_TIME && !activeDuel.ending) {
+
+  // Duel timer runs on this phone's clock from when the duel was seen as active
+  if (activeDuel && activeDuel.start && performance.now() - activeDuel.start > DUEL_TIME && !activeDuel.ending) {
     activeDuel.ending = true;
     const o = remote[activeDuel.opp];
     const myPct = me.hp / me.maxHp, oPct = o ? o.hp / (o.maxHp || 1) : 0;
     endDuel(myPct >= oPct ? me.name : activeDuel.opp);
   }
+  // Leaving the arena during a duel forfeits it
+  if (activeDuel && !activeDuel.ending && !inArena(me.x, me.y)) {
+    activeDuel.ending = true;
+    endDuel(activeDuel.opp);
+    msg('You left the arena and forfeited the duel.');
+  }
 
-  // Attacks: PC mouse / space / hold; phone press-and-hold without dragging
   const touchAttacking = isTouch && TOUCH.atk && !TOUCH.drag;
   if (mouse.down || keys[' '] || touchAttacking) basicAttack();
   ['z', 'x', 'c', 'f'].forEach((k, i) => { if (pressed.has(k)) useSkill(i); });
@@ -2401,13 +2455,11 @@ function update(dt) {
   if (pressed.has('p')) menuAct('pvp');
   pressed.clear();
 
-  // Auto-close panels when you walk away from their NPC
   if (shopOpen && dist(me.x, me.y, SHOP_POS.x, SHOP_POS.y) > 260) toggleShop(false);
   if (questOpen && dist(me.x, me.y, QUEST_POS.x, QUEST_POS.y) > 220) toggleQuest(false);
   if (gachaOpen && dist(me.x, me.y, GACHA_POS.x, GACHA_POS.y) > 220) toggleGacha(false);
   if (stockOpen && dist(me.x, me.y, STORE_POS.x, STORE_POS.y) > 220) toggleStock(false);
 
-  // Player projectiles
   for (const p of projs) {
     p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt;
     if (Math.random() < 0.5) burst(p.x, p.y, p.g, 1, 40, 0.25);
@@ -2418,7 +2470,6 @@ function update(dt) {
   }
   projs = projs.filter(p => p.life > 0);
 
-  // Clones shoot at nearby enemies
   for (const c of clones) {
     c.t -= dt; c.cd -= dt;
     if (c.cd <= 0) {
@@ -2429,14 +2480,12 @@ function update(dt) {
   }
   clones = clones.filter(c => c.t > 0);
 
-  // Boss projectiles
   for (const p of eprojs) {
     p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt;
     if (dist(p.x, p.y, me.x, me.y) < 26) { hurtPlayer(p.dmg); p.life = 0; }
   }
   eprojs = eprojs.filter(p => p.life > 0);
 
-  // Boss hazards
   for (const h of hazards) {
     h.t -= dt;
     if (h.type === 'burst') {
@@ -2467,7 +2516,6 @@ function update(dt) {
   }
   hazards = hazards.filter(h => h.type === 'pool' ? h.t > 0 : !h.hit);
 
-  // Enemies
   for (const e of enemies) {
     if (e.dead) {
       e.respawn -= dt;
@@ -2739,8 +2787,6 @@ function drawQuestGiver() {
   nameTag(x, y - 20, 'Elder Rowan', '#ffe066', 0, '#fff');
 }
 
-function drawRemoteLabelsAndDuel() {}
-
 function drawPlayer() {
   const F = FRUITS[me.fruit], tf = me.tfT > 0, v = tf ? F.tf.v : '';
   const f = Math.sin(time * 8);
@@ -2940,6 +2986,15 @@ function drawSafeZone() {
   ctx.font = 'bold 16px Georgia'; ctx.textAlign = 'center'; ctx.fillStyle = 'rgba(210,255,225,0.95)';
   ctx.fillText('SAFE ZONE', SAFE.x, SAFE.y - SAFE.r + 30);
 }
+function drawArena() {
+  const pulse = 0.5 + 0.5 * Math.sin(time * 3);
+  ctx.strokeStyle = 'rgba(255,176,32,' + (0.5 + 0.4 * pulse) + ')';
+  ctx.lineWidth = 5; ctx.setLineDash([16, 10]);
+  ctx.beginPath(); ctx.ellipse(ARENA.x, ARENA.y, ARENA.rx * 0.8, ARENA.ry * 0.8, 0, 0, Math.PI * 2); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.font = 'bold 14px Georgia'; ctx.textAlign = 'center'; ctx.fillStyle = '#ffe9a8';
+  ctx.fillText('PVP ARENA', ARENA.x, ARENA.y - ARENA.ry + 14);
+}
 function drawClones() {
   for (const c of clones) {
     ctx.globalAlpha = 0.5 * Math.min(1, c.t);
@@ -3020,7 +3075,8 @@ function drawVignette() {
   ctx.fillStyle = v; ctx.fillRect(0, 0, w, h);
 }
 
-// Canvas HUD: quest tracker, skill bar (PC), prompts, duel card, notice
+function drawRemoteLabelsAndDuel() {}
+
 function drawHUD() {
   if (!me.name) return;
   const k = clamp(Math.min(innerWidth / 900, innerHeight / 600), 0.6, 1);
@@ -3028,7 +3084,6 @@ function drawHUD() {
   const F = FRUITS[me.fruit], w = innerWidth / k, h = innerHeight / k;
   ctx.textAlign = 'left';
 
-  // Quest tracker (top-right)
   if (me.q < QUESTS.length) {
     const Q = QUESTS[me.q];
     ctx.fillStyle = 'rgba(8,14,28,0.72)'; rr(w - 300, 10, 290, 58, 12); ctx.fill();
@@ -3040,7 +3095,6 @@ function drawHUD() {
     ctx.fillText(sub, w - 288, 53);
   }
 
-  // Skill bar (PC only)
   if (!isTouch) {
     const slots = [{ l: 'M1', n: 'Combo', cd: me.combo.cd, max: 0.5, c: F.c }];
     F.sk.forEach(s => slots.push({ l: s.k.toUpperCase(), n: s.n, cd: me.cds[s.k] || 0, max: s.cd, c: F.c }));
@@ -3058,18 +3112,16 @@ function drawHUD() {
     });
   }
 
-  // Proximity prompts
   ctx.textAlign = 'center'; ctx.fillStyle = '#ffe066'; ctx.font = 'bold 16px Arial';
   const yP = h - 100;
   if (dist(me.x, me.y, SHOP_POS.x, SHOP_POS.y) < 120 && !shopOpen) ctx.fillText(isTouch ? 'Menu > Shop to open the Grand Bazaar' : 'Press E to open the Grand Bazaar', w / 2, yP);
   else if (dist(me.x, me.y, QUEST_POS.x, QUEST_POS.y) < 140 && !questOpen) ctx.fillText(isTouch ? 'Menu > Quest to talk to Elder Rowan' : 'Press Q to talk to Elder Rowan', w / 2, yP);
   else if (dist(me.x, me.y, GACHA_POS.x, GACHA_POS.y) < 140 && !gachaOpen) ctx.fillText(isTouch ? 'Menu > Gacha to roll the Fruit Gacha' : 'Press G to roll the Fruit Gacha', w / 2, yP);
-  else if (dist(me.x, me.y, STORE_POS.x, STORE_POS.y) < 140 && !stockOpen) ctx.fillText(isTouch ? 'Menu > Stock to view the stock' : 'Press Y to view the Stock Keeper\'s stock', w / 2, yP);
+  else if (dist(me.x, me.y, STORE_POS.x, STORE_POS.y) < 140 && !stockOpen) ctx.fillText(isTouch ? 'Menu > Stock to view the stock' : "Press Y to view the Stock Keeper's stock", w / 2, yP);
 
-  // Duel card (top-centre)
   if (activeDuel && activeDuel.start) {
     const o = remote[activeDuel.opp];
-    const left = Math.max(0, Math.ceil((DUEL_TIME - (Date.now() - activeDuel.start)) / 1000));
+    const left = Math.max(0, Math.ceil((DUEL_TIME - (performance.now() - activeDuel.start)) / 1000));
     const mPct = clamp(me.hp / me.maxHp, 0, 1);
     const oPct = o ? clamp(o.hp / (o.maxHp || 1), 0, 1) : 0;
     const bw = Math.min(380, w - 40), bx = w / 2 - bw / 2, by = 96;
@@ -3108,9 +3160,10 @@ function draw() {
 
   const pulse = 0.5 + 0.5 * Math.sin(time * 2);
   ctx.strokeStyle = 'rgba(255,255,255,' + (0.25 + 0.25 * pulse) + ')'; ctx.lineWidth = 8;
-  for (const I of ISLANDS) { blobPath(ctx, I, 1.08 + 0.02 * pulse); ctx.stroke(); }
+  for (const I of ISLANDS) { if (I.z === 'arena') continue; blobPath(ctx, I, 1.08 + 0.02 * pulse); ctx.stroke(); }
 
   drawSafeZone();
+  drawArena();
   drawBossLairs();
   drawShop();
   drawQuestGiver();
