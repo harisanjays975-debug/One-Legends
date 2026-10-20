@@ -385,15 +385,16 @@ const dbReady = initDB();
 
 // ================= ONLINE PLAYERS + PVP DUELS =================
 const remote = {};
-let activeDuel = null;      // { id, opp, start, ending }
+let activeDuel = null;      // { id, opp, start (this phone's clock), ending }
 let incomingDuel = null;    // { id, opp }
 let presenceRef = null, lastPresence = 0, presenceErrShown = false;
 let hitRef = null, hitListenId = null, seenHits = new Set();
+let lastRangeMsg = 0;
 const DUEL_TIME = 60000;
 const ONLINE_MS = 15000;
 
 function pairKey(a, b) { return [a, b].sort().join('__'); }
-// Judged by this phone's own clock, so different phone clocks do not hide players
+// Judged by this phone's own clock only
 function isOnline(r) { return !!r && performance.now() - (r.seen || 0) < ONLINE_MS; }
 
 function setupPresence() {
@@ -425,34 +426,62 @@ function pushPresence(force) {
     .catch(err => { if (!presenceErrShown) { presenceErrShown = true; msg('Online sync blocked: ' + err.message); } });
 }
 
+// Ends the duel on this phone only (no database write)
+function finishLocal(winner) {
+  if (!activeDuel) return;
+  if (winner === me.name) msg('You won the duel!');
+  else msg((winner || 'Nobody') + ' won the duel.');
+  if (hitRef) { hitRef.off(); hitRef = null; }
+  hitListenId = null;
+  seenHits = new Set();
+  activeDuel = null;
+  me.hp = me.maxHp;
+}
+
+// Ends the duel for both players
+function endDuel(winner) {
+  if (!activeDuel) return;
+  const id = activeDuel.id;
+  firebase.database().ref('duels/' + id).update({ status: 'done', winner: winner || '' });
+  firebase.database().ref('duelhits/' + id).remove();
+  finishLocal(winner);
+}
+
 function onDuels(all) {
   if (!me.name) return;
   incomingDuel = null;
+  let active = null;
+
   for (const id in all) {
     const d = all[id];
     if (!d || (d.a !== me.name && d.b !== me.name)) continue;
     const opp = d.a === me.name ? d.b : d.a;
+
     if (d.status === 'pending' && d.b === me.name) {
       if (!me.pvp) { firebase.database().ref('duels/' + id).remove(); continue; }
       incomingDuel = { id, opp };
       showDuelBox(opp);
     } else if (d.status === 'active') {
-      // Ignore stale duels left over from an old session
-      if (Date.now() - (d.start || 0) > DUEL_TIME + 10000) {
+      // Clean up a stale duel if the other player has gone offline
+      if (remote[opp] && !isOnline(remote[opp])) {
         firebase.database().ref('duels/' + id).remove();
         continue;
       }
-      if (!activeDuel || activeDuel.id !== id) {
-        activeDuel = { id, opp, start: performance.now() };
-        msg('Duel started vs ' + opp + '!');
-      }
-      listenHits(id);
+      active = { id, opp };
     } else if (d.status === 'done' && activeDuel && activeDuel.id === id) {
-      msg(d.winner === me.name ? 'You won the duel!' : (d.winner || 'Nobody') + ' won the duel.');
-      if (hitRef) { hitRef.off(); hitRef = null; }
-      hitListenId = null;
-      activeDuel = null;
+      finishLocal(d.winner);
     }
+  }
+
+  if (active) {
+    if (!activeDuel || activeDuel.id !== active.id) {
+      activeDuel = { id: active.id, opp: active.opp, start: performance.now(), ending: false };
+      msg('Duel started vs ' + active.opp + '! Attack to hit.');
+    }
+    listenHits(active.id);
+  } else if (activeDuel && !activeDuel.ending) {
+    // The duel record was removed by the other side
+    finishLocal(null);
   }
   if (!incomingDuel) hideDuelBox();
 }
@@ -490,13 +519,6 @@ function declineDuel() {
   hideDuelBox();
 }
 
-function endDuel(winner) {
-  if (!activeDuel) return;
-  const id = activeDuel.id;
-  firebase.database().ref('duels/' + id).update({ status: 'done', winner });
-  firebase.database().ref('duelhits/' + id).remove();
-}
-
 function setPvp(on) {
   if (!me.name) return;
   on = !!on;
@@ -521,20 +543,31 @@ function updatePvpUI() {
 
 // Attacker writes a hit; the victim's own game applies the damage
 function pvpStrike(mult, range) {
-  if (!activeDuel || !me.pvp) return;
+  if (!activeDuel || !me.pvp || activeDuel.ending) return;
   const o = remote[activeDuel.opp];
-  if (!o || dist(me.x, me.y, o.x, o.y) > range) return;
-  firebase.database().ref('duelhits/' + activeDuel.id).push({ to: activeDuel.opp, dmg: dmgFor(mult), by: me.name, ts: Date.now() });
+  if (!o || !isOnline(o)) return;
+  const d = dist(me.x, me.y, o.x, o.y);
+  if (d > range) {
+    const now = performance.now();
+    if (now - lastRangeMsg > 1000) { lastRangeMsg = now; msg('Too far to hit (get closer)'); }
+    return;
+  }
+  const dmg = dmgFor(mult);
+  firebase.database().ref('duelhits/' + activeDuel.id).push({ to: activeDuel.opp, dmg, by: me.name });
+  texts.push({ x: o.x, y: o.y - 50, t: '-' + dmg, life: 0.8, max: 0.8, color: '#ffe066' });
 }
 
 function listenHits(id) {
   if (hitListenId === id) return;
   if (hitRef) hitRef.off();
   hitListenId = id;
-  hitRef = firebase.database().ref('duelhits/' + id);
-  hitRef.once('value').then(s => {
+  seenHits = new Set();
+  const ref = firebase.database().ref('duelhits/' + id);
+  hitRef = ref;
+  ref.once('value').then(s => {
+    if (hitRef !== ref) return;
     seenHits = new Set(Object.keys(s.val() || {}));
-    hitRef.on('child_added', c => {
+    ref.on('child_added', c => {
       if (seenHits.has(c.key)) return;
       seenHits.add(c.key);
       const v = c.val();
@@ -547,9 +580,30 @@ function takeHit(dmg, by) {
   if (!activeDuel || !me.pvp) return;
   me.hp -= dmg; me.flash = 0.25; addShake(4);
   texts.push({ x: me.x, y: me.y - 40, t: '-' + dmg, life: 0.8, max: 0.8, color: '#ff4d4d' });
+  msg(by + ' hit you for ' + dmg);
   if (me.hp <= 0) {
     me.hp = me.maxHp; me.x = ARENA.x; me.y = ARENA.y + 40;
     endDuel(by);
+  }
+}
+
+// Called every frame: duel timer and forfeit when leaving the arena
+function updateDuel() {
+  if (!activeDuel || activeDuel.ending) return;
+  if (!inArena(me.x, me.y)) {
+    activeDuel.ending = true;
+    endDuel(activeDuel.opp);
+    msg('You left the arena and forfeited the duel.');
+    return;
+  }
+  if (performance.now() - activeDuel.start > DUEL_TIME) {
+    // Only one phone (the alphabetically first name) ends the timed duel, so both agree on the winner
+    const leader = [me.name, activeDuel.opp].sort()[0] === me.name;
+    if (!leader) return;
+    activeDuel.ending = true;
+    const o = remote[activeDuel.opp];
+    const myPct = me.hp / me.maxHp, oPct = o ? o.hp / (o.maxHp || 1) : 0;
+    endDuel(myPct >= oPct ? me.name : activeDuel.opp);
   }
 }
 
@@ -617,10 +671,14 @@ const mouse = { x: innerWidth / 2, y: innerHeight / 2, down: false };
 // ================= WORLD DATA =================
 const W = 3000, H = 3000;
 const SHOP_POS = { x: 1500, y: 1500 }, SPAWN = { x: 1500, y: 1700 }, QUEST_POS = { x: 1640, y: 1620 };
-const GROUND = { snow: ['#f4fbff', '#9fd0ea', '#ffffff'], grass: ['#8bd96f', '#2f7f3a', '#1f5f2a'],
-                 sand: ['#f8e7b0', '#c9a050', '#a07a32'], rock: ['#4a332d', '#1d100e', '#ff6a2a'],
-                 jungle: ['#5fd46b', '#1d5a2a', '#0f3d1c'], crystal: ['#f0e6ff', '#9b7fe0', '#ffffff'],
-                 thunder: ['#fff9c4', '#8d8a2e', '#fff7a1'], arena: ['#f6e3b4', '#c99a52', '#e8c98a'] };
+
+// Ground colours: [top, bottom, speckle], beach = sand/shore colour around each island
+const GROUND = { snow: ['#fbfdff', '#a9d8ee', '#ffffff'], grass: ['#9be37a', '#2f8a3e', '#1f6b2c'],
+                 sand: ['#fbeebb', '#d6aa5c', '#a88039'], rock: ['#5a3b33', '#1d100e', '#ff6a2a'],
+                 jungle: ['#6fe07a', '#1d6a30', '#0f4520'], crystal: ['#f6eeff', '#a48be6', '#ffffff'],
+                 thunder: ['#fffbd0', '#9c9a36', '#fff7a1'], arena: ['#fbe7b8', '#d7a85e', '#f2d9a0'] };
+const BEACH = { snow: '#e4f6ff', grass: '#f5e2a6', sand: '#fff3cf', rock: '#6b4636', jungle: '#e8d59a',
+                crystal: '#ece3ff', thunder: '#fff6c6', arena: '#fff0c8' };
 
 // The arena is an EMPTY island: no trees, no NPCs, no enemies, no spawns. Only players are here.
 const ARENA = { x: 2760, y: 230, rx: 185, ry: 165 };
@@ -666,7 +724,8 @@ const ZONES = {
             pos: { x: 2650, y: 2700 }, r: 90, abil: ['shardrain', 'blizzard', 'thunder'] } }
 };
 const ZONE_NAME = z => z === 'arena' ? 'PvP Arena' : (ZONES[z] ? ZONES[z].name : 'Open Sea');
-const inArena = (x, y) => dist(x, y, ARENA.x, ARENA.y) < ARENA.rx * 0.9 && dist(x, y, ARENA.x, ARENA.y) < ARENA.ry * 0.9 + 60;
+// Arena is an ellipse around its centre
+const inArena = (x, y) => Math.hypot((x - ARENA.x) / ARENA.rx, (y - ARENA.y) / ARENA.ry) < 0.95;
 
 const ABIL_NAME = { cannon: 'Cannon Shot', slam: 'Tidal Slam', sandstorm: 'Sandstorm', burrow: 'Burrow Strike',
                     shards: 'Ice Shards', blizzard: 'Blizzard', lavapool: 'Lava Pools', meteor: 'Meteor Rain',
@@ -987,7 +1046,7 @@ function saveAccounts(a) { store.setItem(STORE_ACCOUNTS, JSON.stringify(a)); }
 function getSave(n) { try { return JSON.parse(store.getItem(saveKey(n))); } catch (e) { return null; } }
 function putSave(n, d) { store.setItem(saveKey(n), JSON.stringify(d)); }
 
-// ================= WORLD BUILD =================
+// ================= WORLD BUILD (improved map, pre-rendered once) =================
 function blobPath(c, I, k) {
   c.beginPath();
   for (let i = 0; i <= 48; i++) {
@@ -999,50 +1058,137 @@ function blobPath(c, I, k) {
   c.closePath();
 }
 
+// Draws one island: shadow, foam rings, beach rim, textured ground and details
+function drawIslandBase(c, I) {
+  const G = GROUND[I.ground], rock = I.ground === 'rock';
+
+  // Soft shadow the island casts on the water
+  c.save();
+  c.shadowColor = 'rgba(0,25,50,0.5)'; c.shadowBlur = 50; c.shadowOffsetY = 16;
+  c.fillStyle = '#16618a'; blobPath(c, I, 1.02); c.fill();
+  c.restore();
+
+  // Foam / shallow water rings
+  for (let k = 0; k < 5; k++) {
+    c.fillStyle = 'rgba(210,248,255,' + (0.26 - 0.04 * k) + ')';
+    blobPath(c, I, 1.14 + 0.05 * k); c.fill();
+  }
+
+  // Beach rim
+  c.fillStyle = rock ? '#6b4636' : BEACH[I.ground];
+  blobPath(c, I, 1.02); c.fill();
+  c.strokeStyle = 'rgba(255,255,255,0.55)'; c.lineWidth = 3;
+  blobPath(c, I, 1.0); c.stroke();
+
+  // Main ground with a light from the top
+  const gg = c.createLinearGradient(I.x, I.y - I.ry, I.x, I.y + I.ry);
+  gg.addColorStop(0, G[0]); gg.addColorStop(1, G[1]);
+  c.fillStyle = gg; blobPath(c, I, 0.96); c.fill();
+
+  if (I.z === 'arena') {
+    // Plain sand floor with a golden ring. Nothing else is drawn here.
+    c.strokeStyle = 'rgba(160,110,40,0.35)'; c.lineWidth = 3;
+    c.beginPath(); c.ellipse(I.x, I.y, I.rx * 0.8, I.ry * 0.8, 0, 0, Math.PI * 2); c.stroke();
+    return;
+  }
+
+  c.save();
+  blobPath(c, I, 0.96); c.clip();
+
+  // Ground speckles (soft patches for a painted look)
+  const count = Math.round(I.rx * I.ry / 220);
+  for (let i = 0; i < count; i++) {
+    c.fillStyle = i % 3 === 0 ? G[2] : shade(G[0], -22);
+    c.globalAlpha = rand(0.14, 0.32);
+    c.beginPath();
+    c.ellipse(I.x + rand(-I.rx, I.rx), I.y + rand(-I.ry, I.ry), rand(7, 24), rand(3, 9), rand(0, 3), 0, Math.PI * 2);
+    c.fill();
+  }
+  c.globalAlpha = 1;
+
+  // Darker edge shading so the island looks rounded
+  const edge = c.createRadialGradient(I.x, I.y, Math.min(I.rx, I.ry) * 0.5, I.x, I.y, Math.max(I.rx, I.ry) * 1.05);
+  edge.addColorStop(0, 'rgba(0,0,0,0)');
+  edge.addColorStop(1, 'rgba(0,30,40,0.35)');
+  c.fillStyle = edge; blobPath(c, I, 0.96); c.fill();
+
+  // Grass tufts on grassy islands
+  if (I.ground === 'grass' || I.ground === 'jungle') {
+    c.strokeStyle = shade(G[1], 25); c.lineWidth = 2; c.lineCap = 'round';
+    for (let i = 0; i < count / 2; i++) {
+      const x = I.x + rand(-I.rx, I.rx), y = I.y + rand(-I.ry, I.ry), s = rand(3, 6);
+      c.beginPath(); c.moveTo(x - s, y); c.lineTo(x - s * 0.4, y - s * 1.6);
+      c.moveTo(x, y); c.lineTo(x, y - s * 2);
+      c.moveTo(x + s, y); c.lineTo(x + s * 0.5, y - s * 1.5); c.stroke();
+    }
+  }
+
+  // Snow sparkles
+  if (I.ground === 'snow') {
+    c.fillStyle = '#ffffff';
+    for (let i = 0; i < count / 2; i++) {
+      c.globalAlpha = rand(0.4, 0.9);
+      c.beginPath(); c.arc(I.x + rand(-I.rx, I.rx), I.y + rand(-I.ry, I.ry), rand(1, 2.2), 0, Math.PI * 2); c.fill();
+    }
+    c.globalAlpha = 1;
+  }
+
+  // Sand ripples on the dunes
+  if (I.ground === 'sand') {
+    c.strokeStyle = 'rgba(160,110,50,0.25)'; c.lineWidth = 2;
+    for (let i = 0; i < count / 3; i++) {
+      const x = I.x + rand(-I.rx, I.rx), y = I.y + rand(-I.ry, I.ry);
+      c.beginPath(); c.moveTo(x, y); c.quadraticCurveTo(x + 12, y - 3, x + 24, y); c.stroke();
+    }
+  }
+
+  // Lava cracks on the magma island
+  if (rock) {
+    c.strokeStyle = 'rgba(255,120,40,0.75)'; c.lineWidth = 3;
+    for (let i = 0; i < 40; i++) {
+      const x = I.x + rand(-I.rx, I.rx), y = I.y + rand(-I.ry, I.ry);
+      c.beginPath(); c.moveTo(x, y); c.lineTo(x + rand(-40, 40), y + rand(-30, 30)); c.stroke();
+    }
+  }
+
+  // Crystal shine
+  if (I.ground === 'crystal') {
+    c.fillStyle = 'rgba(255,255,255,0.7)';
+    for (let i = 0; i < count / 4; i++) {
+      c.beginPath(); c.arc(I.x + rand(-I.rx, I.rx), I.y + rand(-I.ry, I.ry), rand(1, 2.5), 0, Math.PI * 2); c.fill();
+    }
+  }
+
+  c.restore();
+}
+
 const bgCanvas = document.createElement('canvas');
 bgCanvas.width = W * 0.5; bgCanvas.height = H * 0.5;
 (function buildBG() {
   const c = bgCanvas.getContext('2d');
   c.setTransform(0.5, 0, 0, 0.5, 0, 0);
+
+  // Deep to shallow sea
   const og = c.createLinearGradient(0, 0, 0, H);
-  og.addColorStop(0, '#3bb3e0'); og.addColorStop(0.5, '#1479ad'); og.addColorStop(1, '#06334f');
+  og.addColorStop(0, '#5fd0f0'); og.addColorStop(0.45, '#1f98cc'); og.addColorStop(1, '#073d62');
   c.fillStyle = og; c.fillRect(0, 0, W, H);
-  for (let i = 0; i < 90; i++) {
-    c.fillStyle = 'rgba(0,30,60,' + rand(0.03, 0.08) + ')';
-    c.beginPath(); c.ellipse(rand(0, W), rand(0, H), rand(90, 300), rand(50, 140), rand(0, 3), 0, Math.PI * 2); c.fill();
+
+  // Depth patches
+  for (let i = 0; i < 120; i++) {
+    c.fillStyle = 'rgba(0,40,80,' + rand(0.04, 0.1) + ')';
+    c.beginPath(); c.ellipse(rand(0, W), rand(0, H), rand(120, 380), rand(60, 160), rand(0, 3), 0, Math.PI * 2); c.fill();
   }
-  for (const I of ISLANDS) {
-    const G = GROUND[I.ground], rock = I.ground === 'rock';
-    for (let k = 0; k < 4; k++) {
-      c.fillStyle = rock ? 'rgba(255,110,40,' + (0.16 - 0.03 * k) + ')' : 'rgba(200,245,255,' + (0.2 - 0.04 * k) + ')';
-      blobPath(c, I, 1.12 + 0.06 * k); c.fill();
-    }
-    c.fillStyle = rock ? '#ffb36b' : '#f5ecd0';
-    blobPath(c, I, 1.02); c.fill();
-    const gg = c.createLinearGradient(0, I.y - I.ry, 0, I.y + I.ry);
-    gg.addColorStop(0, G[0]); gg.addColorStop(1, G[1]);
-    c.fillStyle = gg; blobPath(c, I, 0.96); c.fill();
-    if (I.z === 'arena') {
-      // Plain sand floor with a golden ring. Nothing else is drawn here.
-      c.strokeStyle = 'rgba(160,110,40,0.35)'; c.lineWidth = 3;
-      c.beginPath(); c.ellipse(I.x, I.y, I.rx * 0.8, I.ry * 0.8, 0, 0, Math.PI * 2); c.stroke();
-      continue;
-    }
-    c.save(); blobPath(c, I, 0.96); c.clip();
-    for (let i = 0; i < I.rx * I.ry / 400; i++) {
-      c.fillStyle = G[2]; c.globalAlpha = rand(0.25, 0.6);
-      c.fillRect(I.x + rand(-I.rx, I.rx), I.y + rand(-I.ry, I.ry), rand(3, 9), rand(2, 5));
-    }
-    c.globalAlpha = 1;
-    if (rock) {
-      c.strokeStyle = 'rgba(255,120,40,0.7)'; c.lineWidth = 3;
-      for (let i = 0; i < 40; i++) {
-        const x = I.x + rand(-I.rx, I.rx), y = I.y + rand(-I.ry, I.ry);
-        c.beginPath(); c.moveTo(x, y); c.lineTo(x + rand(-40, 40), y + rand(-30, 30)); c.stroke();
-      }
-    }
-    c.restore();
+  // Light streaks on the water
+  for (let i = 0; i < 80; i++) {
+    c.strokeStyle = 'rgba(255,255,255,' + rand(0.03, 0.09) + ')';
+    c.lineWidth = rand(2, 5);
+    const x = rand(0, W), y = rand(0, H);
+    c.beginPath(); c.moveTo(x, y);
+    c.quadraticCurveTo(x + rand(40, 120), y - rand(10, 30), x + rand(80, 200), y - rand(20, 50));
+    c.stroke();
   }
+
+  for (const I of ISLANDS) drawIslandBase(c, I);
 })();
 
 // ================= DECORATIONS =================
@@ -2428,19 +2574,7 @@ function update(dt) {
   anim.m1.t = Math.max(0, anim.m1.t - dt);
   anim.cast.t = Math.max(0, anim.cast.t - dt);
 
-  // Duel timer runs on this phone's clock from when the duel was seen as active
-  if (activeDuel && activeDuel.start && performance.now() - activeDuel.start > DUEL_TIME && !activeDuel.ending) {
-    activeDuel.ending = true;
-    const o = remote[activeDuel.opp];
-    const myPct = me.hp / me.maxHp, oPct = o ? o.hp / (o.maxHp || 1) : 0;
-    endDuel(myPct >= oPct ? me.name : activeDuel.opp);
-  }
-  // Leaving the arena during a duel forfeits it
-  if (activeDuel && !activeDuel.ending && !inArena(me.x, me.y)) {
-    activeDuel.ending = true;
-    endDuel(activeDuel.opp);
-    msg('You left the arena and forfeited the duel.');
-  }
+  updateDuel();
 
   const touchAttacking = isTouch && TOUCH.atk && !TOUCH.drag;
   if (mouse.down || keys[' '] || touchAttacking) basicAttack();
@@ -3075,8 +3209,6 @@ function drawVignette() {
   ctx.fillStyle = v; ctx.fillRect(0, 0, w, h);
 }
 
-function drawRemoteLabelsAndDuel() {}
-
 function drawHUD() {
   if (!me.name) return;
   const k = clamp(Math.min(innerWidth / 900, innerHeight / 600), 0.6, 1);
@@ -3158,9 +3290,10 @@ function draw() {
   ctx.translate(-cam.x + sx, -cam.y + sy);
   ctx.drawImage(bgCanvas, 0, 0, W, H);
 
+  // Animated surf shimmer around each island
   const pulse = 0.5 + 0.5 * Math.sin(time * 2);
-  ctx.strokeStyle = 'rgba(255,255,255,' + (0.25 + 0.25 * pulse) + ')'; ctx.lineWidth = 8;
-  for (const I of ISLANDS) { if (I.z === 'arena') continue; blobPath(ctx, I, 1.08 + 0.02 * pulse); ctx.stroke(); }
+  ctx.strokeStyle = 'rgba(255,255,255,' + (0.12 + 0.12 * pulse) + ')'; ctx.lineWidth = 6;
+  for (const I of ISLANDS) { if (I.z === 'arena') continue; blobPath(ctx, I, 1.2 + 0.02 * pulse); ctx.stroke(); }
 
   drawSafeZone();
   drawArena();
