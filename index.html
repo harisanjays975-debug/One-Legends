@@ -385,16 +385,15 @@ const dbReady = initDB();
 
 // ================= ONLINE PLAYERS + PVP DUELS =================
 const remote = {};
-let activeDuel = null;      // { id, opp, start (this phone's clock), ending }
-let incomingDuel = null;    // { id, opp }
+let activeDuel = null;      // { key, opp, start (this phone's clock), ending }
+let incomingDuel = null;    // { key, opp }
 let presenceRef = null, lastPresence = 0, presenceErrShown = false;
-let hitRef = null, hitListenId = null, seenHits = new Set();
+let hitRef = null, hitHandler = null, hitKey = null, seenHits = new Set();
 let lastRangeMsg = 0;
 const DUEL_TIME = 60000;
 const ONLINE_MS = 15000;
 
 function pairKey(a, b) { return [a, b].sort().join('__'); }
-// Judged by this phone's own clock only
 function isOnline(r) { return !!r && performance.now() - (r.seen || 0) < ONLINE_MS; }
 
 function setupPresence() {
@@ -426,24 +425,48 @@ function pushPresence(force) {
     .catch(err => { if (!presenceErrShown) { presenceErrShown = true; msg('Online sync blocked: ' + err.message); } });
 }
 
-// Ends the duel on this phone only (no database write)
+// ----- hit listener (one per duel) -----
+function stopHits() {
+  if (hitRef && hitHandler) hitRef.off('child_added', hitHandler);
+  hitRef = null; hitHandler = null; hitKey = null; seenHits = new Set();
+}
+function startHits(key) {
+  if (hitKey === key) return;
+  stopHits();
+  hitKey = key;
+  const ref = firebase.database().ref('duelhits/' + key);
+  hitRef = ref;
+  // Skip hits that already existed before this duel began
+  ref.once('value').then(s => {
+    if (hitRef !== ref) return;
+    seenHits = new Set(Object.keys(s.val() || {}));
+    hitHandler = c => {
+      if (seenHits.has(c.key)) return;
+      seenHits.add(c.key);
+      const v = c.val();
+      if (v && v.to === me.name) takeHit(v.dmg, v.by);
+    };
+    ref.on('child_added', hitHandler);
+  });
+}
+
+// Ends the duel on this phone only
 function finishLocal(winner) {
   if (!activeDuel) return;
   if (winner === me.name) msg('You won the duel!');
   else msg((winner || 'Nobody') + ' won the duel.');
-  if (hitRef) { hitRef.off(); hitRef = null; }
-  hitListenId = null;
-  seenHits = new Set();
+  stopHits();
   activeDuel = null;
   me.hp = me.maxHp;
+  updatePvpUI();
 }
 
 // Ends the duel for both players
 function endDuel(winner) {
   if (!activeDuel) return;
-  const id = activeDuel.id;
-  firebase.database().ref('duels/' + id).update({ status: 'done', winner: winner || '' });
-  firebase.database().ref('duelhits/' + id).remove();
+  const key = activeDuel.key;
+  firebase.database().ref('duels/' + key).update({ status: 'done', winner: winner || '' });
+  firebase.database().ref('duelhits/' + key).remove();
   finishLocal(winner);
 }
 
@@ -452,33 +475,37 @@ function onDuels(all) {
   incomingDuel = null;
   let active = null;
 
-  for (const id in all) {
-    const d = all[id];
+  for (const key in all) {
+    const d = all[key];
     if (!d || (d.a !== me.name && d.b !== me.name)) continue;
     const opp = d.a === me.name ? d.b : d.a;
 
-    if (d.status === 'pending' && d.b === me.name) {
-      if (!me.pvp) { firebase.database().ref('duels/' + id).remove(); continue; }
-      incomingDuel = { id, opp };
-      showDuelBox(opp);
+    if (d.status === 'pending') {
+      if (d.b === me.name) {
+        if (!me.pvp) { firebase.database().ref('duels/' + key).remove(); continue; }
+        incomingDuel = { key, opp };
+        showDuelBox(opp);
+      }
     } else if (d.status === 'active') {
-      // Clean up a stale duel if the other player has gone offline
+      // Remove the duel if the opponent has left the game
       if (remote[opp] && !isOnline(remote[opp])) {
-        firebase.database().ref('duels/' + id).remove();
+        firebase.database().ref('duels/' + key).remove();
         continue;
       }
-      active = { id, opp };
-    } else if (d.status === 'done' && activeDuel && activeDuel.id === id) {
+      active = { key, opp };
+    } else if (d.status === 'done' && activeDuel && activeDuel.key === key) {
       finishLocal(d.winner);
     }
   }
 
   if (active) {
-    if (!activeDuel || activeDuel.id !== active.id) {
-      activeDuel = { id: active.id, opp: active.opp, start: performance.now(), ending: false };
-      msg('Duel started vs ' + active.opp + '! Attack to hit.');
+    if (!activeDuel || activeDuel.key !== active.key) {
+      activeDuel = { key: active.key, opp: active.opp, start: performance.now(), ending: false };
+      msg('Duel started vs ' + active.opp + '! Walk up and attack.');
+      updatePvpUI();
     }
-    listenHits(active.id);
+    activeDuel.opp = active.opp;
+    startHits(active.key);
   } else if (activeDuel && !activeDuel.ending) {
     // The duel record was removed by the other side
     finishLocal(null);
@@ -496,8 +523,8 @@ function challengeDuel(opp) {
   if (!inArena(r.x, r.y)) return feedback(opp + ' is not in the PvP Arena.');
   firebase.database().ref('duels/' + pairKey(me.name, opp))
     .set({ a: me.name, b: opp, status: 'pending', start: 0, winner: '' })
+    .then(() => msg('Duel request sent to ' + opp + '. Waiting for them to accept.'))
     .catch(err => feedback('Duel blocked: ' + err.message));
-  feedback('Duel request sent to ' + opp + '.');
 }
 
 function acceptDuel() {
@@ -507,14 +534,14 @@ function acceptDuel() {
     msg('Duel cancelled. Both players must be in the PvP Arena.');
     return;
   }
-  firebase.database().ref('duels/' + pairKey(me.name, incomingDuel.opp))
+  firebase.database().ref('duels/' + incomingDuel.key)
     .update({ status: 'active', start: Date.now() });
   hideDuelBox();
 }
 
 function declineDuel() {
   if (!incomingDuel) return;
-  firebase.database().ref('duels/' + pairKey(me.name, incomingDuel.opp)).remove();
+  firebase.database().ref('duels/' + incomingDuel.key).remove();
   incomingDuel = null;
   hideDuelBox();
 }
@@ -541,48 +568,29 @@ function updatePvpUI() {
   big.className = 'pv-big ' + (me.pvp ? 'on' : 'off');
 }
 
-// Attacker writes a hit; the victim's own game applies the damage
+// Attacker sends the hit; the victim's own phone applies the damage
 function pvpStrike(mult, range) {
-  if (!activeDuel || !me.pvp || activeDuel.ending) return;
+  if (!activeDuel || activeDuel.ending || !me.pvp) return;
   const o = remote[activeDuel.opp];
-  if (!o || !isOnline(o)) return;
-  const d = dist(me.x, me.y, o.x, o.y);
-  if (d > range) {
+  if (!o) return;
+  if (dist(me.x, me.y, o.x, o.y) > range) {
     const now = performance.now();
-    if (now - lastRangeMsg > 1000) { lastRangeMsg = now; msg('Too far to hit (get closer)'); }
+    if (now - lastRangeMsg > 1000) { lastRangeMsg = now; msg('Too far to hit. Get closer to ' + activeDuel.opp); }
     return;
   }
   const dmg = dmgFor(mult);
-  firebase.database().ref('duelhits/' + activeDuel.id).push({ to: activeDuel.opp, dmg, by: me.name });
+  firebase.database().ref('duelhits/' + activeDuel.key).push({ to: activeDuel.opp, dmg, by: me.name });
   texts.push({ x: o.x, y: o.y - 50, t: '-' + dmg, life: 0.8, max: 0.8, color: '#ffe066' });
 }
 
-function listenHits(id) {
-  if (hitListenId === id) return;
-  if (hitRef) hitRef.off();
-  hitListenId = id;
-  seenHits = new Set();
-  const ref = firebase.database().ref('duelhits/' + id);
-  hitRef = ref;
-  ref.once('value').then(s => {
-    if (hitRef !== ref) return;
-    seenHits = new Set(Object.keys(s.val() || {}));
-    ref.on('child_added', c => {
-      if (seenHits.has(c.key)) return;
-      seenHits.add(c.key);
-      const v = c.val();
-      if (v && v.to === me.name) takeHit(v.dmg, v.by);
-    });
-  });
-}
-
 function takeHit(dmg, by) {
-  if (!activeDuel || !me.pvp) return;
+  if (!activeDuel || activeDuel.ending || !me.pvp) return;
   me.hp -= dmg; me.flash = 0.25; addShake(4);
   texts.push({ x: me.x, y: me.y - 40, t: '-' + dmg, life: 0.8, max: 0.8, color: '#ff4d4d' });
   msg(by + ' hit you for ' + dmg);
   if (me.hp <= 0) {
-    me.hp = me.maxHp; me.x = ARENA.x; me.y = ARENA.y + 40;
+    me.x = ARENA.x; me.y = ARENA.y + 40;
+    activeDuel.ending = true;
     endDuel(by);
   }
 }
@@ -597,7 +605,7 @@ function updateDuel() {
     return;
   }
   if (performance.now() - activeDuel.start > DUEL_TIME) {
-    // Only one phone (the alphabetically first name) ends the timed duel, so both agree on the winner
+    // Only one phone (the alphabetically first name) ends the timed duel
     const leader = [me.name, activeDuel.opp].sort()[0] === me.name;
     if (!leader) return;
     activeDuel.ending = true;
@@ -1046,7 +1054,7 @@ function saveAccounts(a) { store.setItem(STORE_ACCOUNTS, JSON.stringify(a)); }
 function getSave(n) { try { return JSON.parse(store.getItem(saveKey(n))); } catch (e) { return null; } }
 function putSave(n, d) { store.setItem(saveKey(n), JSON.stringify(d)); }
 
-// ================= WORLD BUILD (improved map, pre-rendered once) =================
+// ================= WORLD BUILD (pre-rendered once) =================
 function blobPath(c, I, k) {
   c.beginPath();
   for (let i = 0; i <= 48; i++) {
